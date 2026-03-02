@@ -1,0 +1,17 @@
+{
+  "name": "rifa-backend",
+  "version": "1.0.0",
+  "description": "Plataforma de rifas con semilla Baloto, verificación SHA256, actas PDF y QR",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.13.5",
+    "cheerio": "^1.2.0",
+    "express": "^4.19.2",
+    "pdfkit": "^0.15.0",
+    "qrcode": "^1.5.4"
+  }
+}
