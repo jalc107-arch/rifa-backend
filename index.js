@@ -1519,7 +1519,7 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
   const base = publicBaseUrl(req);
 
   // ✅ Opción B: volvemos a la orden con ?wompi=1 para validar pago
-  const redirectUrl = ${base}/rifas/${rifaId}/orden/${orderId}?wompi=1;
+  const redirectUrl = `${base}/rifas/${rifaId}/orden/${orderId}?wompi=1`;
 
   res.type("html").send(`<!doctype html>
 <html lang="es">
