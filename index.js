@@ -27,10 +27,21 @@ app.use(express.json({ limit: "2mb" }));
 // =========================
 // Archivos
 // =========================
-const RIFAS_DB_FILE = "rifas_db.json";
-const ACTA_COUNTER_FILE = "acta_counter.json";
-const ACTAS_FILE = "actas.json";
-const ORDERS_FILE = "orders.json";
+// =========================
+// DATA DIR (Railway Volume)
+// =========================
+const DATA_DIR = process.env.DATA_DIR || "./data";
+
+// crear carpeta si no existe
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Archivos de base de datos
+const RIFAS_DB_FILE = `${DATA_DIR}/rifas_db.json`;
+const ACTA_COUNTER_FILE = `${DATA_DIR}/acta_counter.json`;
+const ACTAS_FILE = `${DATA_DIR}/actas.json`;
+const ORDERS_FILE = `${DATA_DIR}/orders.json`;
 
 // =========================
 // Constantes
