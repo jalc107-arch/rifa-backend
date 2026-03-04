@@ -1535,7 +1535,7 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
     order.totalPagar,
   )} COP</b></div>
 
-    <div style="margin-top:14px;">
+   <div style="margin-top:14px;">
   <script
     src="https://checkout.wompi.co/widget.js"
     data-render="button"
