@@ -1851,6 +1851,23 @@ app.post("/rifas/:rifaId/oficial-manual", (req, res) => {
 // START (Railway)
 // =========================
 const PORT = Number(process.env.PORT || 3000);
+app.get("/debug/wompi", (req, res) => {
+  const pub = (process.env.WOMPI_PUBLIC_KEY || "").trim();
+  const prv = (process.env.WOMPI_PRIVATE_KEY || "").trim();
+  const integ = (process.env.WOMPI_INTEGRITY_SECRET || "").trim();
+
+  const env =
+    pub.toLowerCase().startsWith("pub_test_") ? "sandbox" :
+    pub.toLowerCase().startsWith("pub_prod_") ? "production" :
+    "unknown";
+
+  res.json({
+    env,
+    pub_prefix: pub.slice(0, 9),   // ej: "pub_test_" o "pub_prod_"
+    prv_prefix: prv.slice(0, 9),   // ej: "prv_test_" o "prv_prod_"
+    integrity_len: integ.length,   // solo longitud
+  });
+});
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
