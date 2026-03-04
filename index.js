@@ -107,9 +107,9 @@ function formatBoleta(winner, kDigits) {
   return s.padStart(kDigits, "0");
 }
 
-// Firma integrity para Wompi Widget
+// Firma integrity para Wompi Widget  ✅ (BLINDADA)
 function wompiIntegritySignature({ reference, amountInCents, currency = "COP" }) {
-  const raw = `${reference}${amountInCents}${currency}${WOMPI_INTEGRITY_SECRET}`;
+  const raw = `${reference}${String(amountInCents)}${currency}${WOMPI_INTEGRITY_SECRET}`;
   return sha256Hex(raw);
 }
 
@@ -953,7 +953,7 @@ function renderOrdenPage({ rifaId, rifa, order }) {
     </div>
 
     <div style="margin-top:12px;">
-      <a href="/rifas/${rifaId}/sorteo?baloto=demo&k=${rifa.k}" style="text-decoration:none;color:#1a7f37;font-weight:700;">⬅ Volver al sorteo</a>
+      <a href="/rifas/${rifaId}/sorteo?baloto=demo&k=${rifa.k}" style="text-decoration:none;color:#1a7f37;font-weight:700;">⬅Volver al sorteo</a>
     </div>
   </div>
 </body>
@@ -1485,7 +1485,7 @@ app.get("/rifas/:rifaId/orden/:orderId", async (req, res) => {
 });
 
 // =========================
-// ✅ Pagar con Wompi (Widget) por orden
+// ✅ Pagar con Wompi (Widget) por orden   ✅ (AJUSTADO)
 // =========================
 app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
   const { rifaId, orderId } = req.params;
@@ -1507,12 +1507,17 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
   }
 
   const reference = orderId; // ✅ referencia única
-  const amountInCents = Math.round(Number(order.totalPagar || 0) * 100);
   const currency = "COP";
+
+  // totalPagar está en COP; Wompi pide CENTAVOS
+  const amountInCents = Math.round(Number(order.totalPagar || 0) * 100);
+  if (!Number.isFinite(amountInCents) || amountInCents < 100) {
+    return res.status(400).send("Monto inválido para Wompi.");
+  }
 
   const signature = wompiIntegritySignature({
     reference,
-    amountInCents,
+    amountInCents: String(amountInCents),
     currency,
   });
 
@@ -1535,18 +1540,18 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
     order.totalPagar,
   )} COP</b></div>
 
-   <div style="margin-top:14px;">
-  <script
-    src="https://checkout.wompi.co/widget.js"
-    data-render="button"
-    data-public-key="${WOMPI_PUBLIC_KEY}"
-    data-currency="${currency}"
-    data-amount-in-cents="${amountInCents}"
-    data-reference="${reference}"
-    data-signature:integrity="${signature}"
-    data-redirect-url="${redirectUrl}">
-  </script>
-</div>
+    <div style="margin-top:14px;">
+      <script
+        src="https://checkout.wompi.co/widget.js"
+        data-render="button"
+        data-public-key="${WOMPI_PUBLIC_KEY}"
+        data-currency="${currency}"
+        data-amount-in-cents="${amountInCents}"
+        data-reference="${reference}"
+        data-signature:integrity="${signature}"
+        data-redirect-url="${redirectUrl}">
+      </script>
+    </div>
 
     <div style="margin-top:12px;font-size:12px;opacity:.75;">
       * Al terminar, Wompi te redirige y el backend valida la transacción automáticamente (opción B).
@@ -1632,7 +1637,9 @@ app.post("/webhooks/wompi", express.json({ type: "*/*" }), (req, res) => {
       writeOrdersDB(ordersDB);
       writeRifasDB(db);
 
-      return res.status(200).json({ ok: true, approved: true, orderId: reference });
+      return res
+        .status(200)
+        .json({ ok: true, approved: true, orderId: reference });
     }
 
     if (["DECLINED", "ERROR", "VOIDED"].includes(status)) {
@@ -1640,7 +1647,9 @@ app.post("/webhooks/wompi", express.json({ type: "*/*" }), (req, res) => {
       found.rejectedAt = nowISO();
       ordersDB.byRifa[foundRifaId].orders[reference] = found;
       writeOrdersDB(ordersDB);
-      return res.status(200).json({ ok: true, rejected: true, orderId: reference });
+      return res
+        .status(200)
+        .json({ ok: true, rejected: true, orderId: reference });
     }
 
     ordersDB.byRifa[foundRifaId].orders[reference] = found;
@@ -1648,7 +1657,9 @@ app.post("/webhooks/wompi", express.json({ type: "*/*" }), (req, res) => {
     return res.status(200).json({ ok: true, status });
   } catch (e) {
     console.error("Webhook error:", e);
-    return res.status(200).json({ ok: false, error: e?.message || "webhook error" });
+    return res
+      .status(200)
+      .json({ ok: false, error: e?.message || "webhook error" });
   }
 });
 
