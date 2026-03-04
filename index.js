@@ -1553,15 +1553,15 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
 
     <div style="margin-top:14px;">
       <script
-        src="https://checkout.wompi.co/widget.js"
-        data-render="button"
-        data-public-key="${WOMPI_PUBLIC_KEY}"
-        data-currency="${currency}"
-        data-amount-in-cents="${amountInCents}"
-        data-reference="${reference}"
-        data-signature:integrity="${signature}"
-        data-redirect-url="${redirectUrl}">
-      </script>
+  src="https://checkout.wompi.co/widget.js"
+  data-render="button"
+  data-public-key="${WOMPI_PUBLIC_KEY}"
+  data-currency="${currency}"
+  data-amount-in-cents="${amountInCents}"
+  data-reference="${reference}"
+  data-signature-integrity="${signature}"
+  data-redirect-url="${redirectUrl}">
+</script>
     </div>
 
     <div style="margin-top:12px;font-size:12px;opacity:.75;">
