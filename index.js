@@ -1868,6 +1868,104 @@ app.get("/debug/wompi", (req, res) => {
     integrity_len: integ.length,   // solo longitud
   });
 });
+// =========================
+// PAGO WOMPI (Widget)
+// =========================
+
+// Utilidad: convertir COP a "cents" (Wompi usa centavos)
+function toCentsCOP(valorCOP) {
+  // si ya viene en COP entero
+  const n = Number(valorCOP || 0);
+  return Math.round(n * 100);
+}
+
+// Utilidad: SHA256 hex (Node)
+import crypto from "crypto";
+function sha256Hex(str) {
+  return crypto.createHash("sha256").update(str, "utf8").digest("hex");
+}
+
+// Este endpoint muestra el botón/widget de Wompi
+app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
+  try {
+    const { rifaId, orderId } = req.params;
+
+    // 1) Trae la orden desde tu storage (ajusta a tu función real)
+    // Debe devolverte al menos: { id, totalPagar } o { totalPagar }
+    const order = await getOrderById(rifaId, orderId); // <-- AJUSTA ESTA FUNCIÓN
+    if (!order) return res.status(404).send("Orden no encontrada");
+
+    const totalCOP = Number(order.totalPagar || order.total || 0);
+    const amountInCents = toCentsCOP(totalCOP);
+
+    // 2) Variables de entorno
+    const WOMPI_PUBLIC_KEY = (process.env.WOMPI_PUBLIC_KEY || "").trim();
+    const WOMPI_INTEGRITY_SECRET = (process.env.WOMPI_INTEGRITY_SECRET || "").trim();
+
+    if (!WOMPI_PUBLIC_KEY) return res.status(500).send("Falta WOMPI_PUBLIC_KEY");
+    if (!WOMPI_INTEGRITY_SECRET) return res.status(500).send("Falta WOMPI_INTEGRITY_SECRET");
+
+    // 3) reference (debe ser estable y único)
+    // Puedes usar el orderId (recomendado)
+    const reference = String(orderId);
+
+    // 4) Firma integrity (según docs Wompi)
+    // concatenación: reference + amountInCents + currency + integritySecret
+    const currency = "COP";
+    const signature = sha256Hex(`${reference}${amountInCents}${currency}${WOMPI_INTEGRITY_SECRET}`);
+
+    // 5) redirect URL (a donde vuelve Wompi al finalizar)
+    // Ajusta la ruta que tú uses para "validar" o mostrar resultado
+    const redirectUrl = `${req.protocol}://${req.get("host")}/rifas/${rifaId}/orden/${orderId}`;
+
+    // 6) Render HTML simple con el widget
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.send(`
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pagar con Wompi</title>
+</head>
+<body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#f5f7fb;margin:0;padding:24px;">
+  <div style="max-width:720px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);padding:22px;">
+    <h2 style="margin-top:0;">Pagar con Wompi</h2>
+
+    <div style="opacity:.85;margin-bottom:14px;">
+      Orden: <b>${orderId}</b> — Total: <b>$${totalCOP.toLocaleString("es-CO")} COP</b>
+    </div>
+
+    <!-- ✅ IMPORTANTE: URL DEL SCRIPT CORRECTA (sin caracteres raros) -->
+    <script
+      src="https://checkout.wompi.co/widget.js"
+      data-render="button"
+      data-public-key="${WOMPI_PUBLIC_KEY}"
+      data-currency="COP"
+      data-amount-in-cents="${amountInCents}"
+      data-reference="${reference}"
+      data-signature-integrity="${signature}"
+      data-redirect-url="${redirectUrl}">
+    </script>
+
+    <div style="margin-top:12px;font-size:12px;opacity:.75;">
+      * Al terminar, Wompi te redirige y el backend valida la transacción automáticamente.
+    </div>
+
+    <div style="margin-top:12px;">
+      <a href="/rifas/${rifaId}/orden/${orderId}" style="text-decoration:none;color:#1a7f37;font-weight:700;">
+        ← Volver a la orden
+      </a>
+    </div>
+  </div>
+</body>
+</html>
+    `);
+  } catch (e) {
+    console.error("Error /pagar wompi:", e);
+    return res.status(500).send(e?.message || "Error en /pagar wompi");
+  }
+});
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
