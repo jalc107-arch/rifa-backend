@@ -1395,7 +1395,7 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
         data-currency="${currency}"
         data-amount-in-cents="${amountInCents}"
         data-reference="${reference}"
-        data-signature:integrity="${signature}"
+        data-signature-integrity="${signature}"
         data-redirect-url="${redirectUrl}">
       </script>
     </div>
