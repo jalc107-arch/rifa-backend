@@ -200,15 +200,16 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
   const order = rifa.orders[orderId];
   if (!order) return res.status(404).send("Orden no existe");
 
-  const amountInCents = Math.round(Number(order.totalPagar) * 100);
-  const currency = "COP";
-  const reference = orderId;
+ const currency = "COP";
+const reference = orderId;
 
-  // Firma integridad: reference + amount_in_cents + currency + integrity_secret
-  const signature = crypto
-    .createHash("sha256")
-    .update(`${reference}${amountInCents}${currency}${integ}`)
-    .digest("hex");
+// Wompi requiere string exacto
+const amountInCents = String(order.totalPagar * 100);
+
+const signature = crypto
+  .createHash("sha256")
+  .update(reference + amountInCents + currency + integ)
+  .digest("hex");
 
   const base = getBaseUrl(req);
   const redirectUrl = `${base}/rifas/${rifaId}/orden/${orderId}`;
