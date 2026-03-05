@@ -52,23 +52,39 @@ function getBaseUrl(req) {
 }
 
 // =========================
-// DEBUG WOMPI
+// DEBUG WOMPI (MEJORADO)
 // =========================
 app.get("/debug/wompi", (req, res) => {
   const pub = (process.env.WOMPI_PUBLIC_KEY || "").trim();
   const prv = (process.env.WOMPI_PRIVATE_KEY || "").trim();
   const integ = (process.env.WOMPI_INTEGRITY_SECRET || "").trim();
 
+  const pubIsTest = pub.toLowerCase().startsWith("pub_test_");
+  const pubIsProd = pub.toLowerCase().startsWith("pub_prod_");
+  const prvIsTest = prv.toLowerCase().startsWith("prv_test_");
+  const prvIsProd = prv.toLowerCase().startsWith("prv_prod_");
+
   const env =
-    pub.toLowerCase().startsWith("pub_test_") ? "sandbox" :
-    pub.toLowerCase().startsWith("pub_prod_") ? "production" :
+    pubIsTest ? "sandbox" :
+    pubIsProd ? "production" :
     "unknown";
+
+  const mismatch =
+    (pubIsTest && prvIsProd) || (pubIsProd && prvIsTest);
 
   res.json({
     env,
-    pub_prefix: pub.slice(0, 9),   // ej: pub_test_ o pub_prod_
-    prv_prefix: prv.slice(0, 9),   // ej: prv_test_ o prv_prod_
-    integrity_len: integ.length,   // solo longitud
+    pub_prefix: pub ? pub.slice(0, 9) : "undefined",
+    prv_prefix: prv ? prv.slice(0, 9) : "undefined",
+    integrity_len: integ ? integ.length : 0,
+    mismatch_env: mismatch,
+    missing: {
+      WOMPI_PUBLIC_KEY: !pub,
+      WOMPI_PRIVATE_KEY: !prv,
+      WOMPI_INTEGRITY_SECRET: !integ,
+      PRICE_PER_TICKET: !process.env.PRICE_PER_TICKET,
+      DATA_DIR: !process.env.DATA_DIR,
+    },
   });
 });
 
@@ -102,7 +118,6 @@ app.get("/crear-demo", (req, res) => {
     links: {
       sorteo: `/rifas/${rifaId}/sorteo?baloto=demo&k=2`,
       comprar: `/rifas/${rifaId}/comprar`,
-      // opcional útil
       api_rifa: `${base}/rifas/${rifaId}`,
     },
   });
@@ -154,6 +169,7 @@ app.get("/rifas/:rifaId/comprar", (req, res) => {
 // =========================
 app.get("/rifas/:rifaId/orden/:orderId", (req, res) => {
   const { rifaId, orderId } = req.params;
+
   const db = readDB();
   const rifa = db.rifas[rifaId];
   if (!rifa) return res.status(404).json({ ok: false, error: "Rifa no existe" });
@@ -188,7 +204,7 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
   const currency = "COP";
   const reference = orderId;
 
-  // Firma integridad según docs: reference + amount_in_cents + currency + integrity_secret
+  // Firma integridad: reference + amount_in_cents + currency + integrity_secret
   const signature = crypto
     .createHash("sha256")
     .update(`${reference}${amountInCents}${currency}${integ}`)
@@ -238,13 +254,10 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", (req, res) => {
 });
 
 // =========================
-// WEBHOOK WOMPI
+// WEBHOOK WOMPI (MEJORADO)
 // =========================
 // Configura en Wompi: URL = https://TU-DOMINIO/wompi/webhook
 app.post("/wompi/webhook", (req, res) => {
-  // OJO: Wompi envía un "signature" en algunos eventos/configs.
-  // Aquí lo dejamos simple y marcamos PAID si llega un evento APPROVED.
-
   const body = req.body;
 
   try {
@@ -258,6 +271,7 @@ app.post("/wompi/webhook", (req, res) => {
     }
 
     const db = readDB();
+    let found = false;
 
     // Buscar la orden en todas las rifas
     for (const rifaId of Object.keys(db.rifas)) {
@@ -265,9 +279,11 @@ app.post("/wompi/webhook", (req, res) => {
       const order = rifa?.orders?.[reference];
       if (!order) continue;
 
+      found = true;
+
       order.wompi = {
         lastEventAt: nowISO(),
-        raw: body,
+        raw: body, // guardamos el payload para auditoría / debug
       };
 
       if (status === "APPROVED") {
@@ -281,7 +297,7 @@ app.post("/wompi/webhook", (req, res) => {
       break;
     }
 
-    return res.json({ ok: true });
+    return res.json({ ok: true, found });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e?.message || "Webhook error" });
   }
