@@ -946,7 +946,22 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
               Los números <b>no se eligen manualmente</b>. Se asignan <b>automáticamente después del pago aprobado</b>.
             </div>
           </div>
+<div style="margin-top:12px;margin-bottom:14px;">
+  <a
+    href="https://wa.me/?text=${encodeURIComponent(`🎟️ Participa en la rifa: ${rifa.title}
 
+🏆 Premio: ${rifa.prize || "Premio"}
+💰 Valor boleta: $${Number(rifa.price_per_ticket).toLocaleString("es-CO")}
+📊 Vendidas: ${vendidos} de ${maximos}
+
+Compra aquí 👇
+${base}/r/${rifa.slug || rifa.id}`)}"
+    target="_blank"
+    style="display:inline-block;background:#25D366;color:white;text-decoration:none;padding:12px 16px;border-radius:12px;font-weight:800;"
+  >
+    Compartir por WhatsApp
+  </a>
+</div>
           <div>
             <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.04);">
               <h2 style="margin-top:0;margin-bottom:14px;font-size:22px;">Compra tus boletas</h2>
