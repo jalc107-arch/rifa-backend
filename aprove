@@ -1321,7 +1321,84 @@ integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
     res.status(500).send(e.message);
   }
 });
+async function sendWhatsAppText(to, body) {
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
 
+  if (!phoneNumberId || !token) {
+    throw new Error("Faltan variables de WhatsApp");
+  }
+
+  const cleanTo = String(to || "").replace(/\D/g, "");
+  const toInternational = cleanTo.startsWith("57") ? cleanTo : `57${cleanTo}`;
+
+  const resp = await fetch(`https://graph.facebook.com/v25.0/${phoneNumberId}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to: toInternational,
+      type: "text",
+      text: { body },
+    }),
+  });
+
+  const data = await resp.json();
+
+  if (!resp.ok) {
+    throw new Error(`WhatsApp error: ${JSON.stringify(data)}`);
+  }
+
+  return data;
+}
+
+async function sendPurchaseWhatsApp(orderId) {
+  const { data: orderFull, error: orderFullError } = await supabase
+    .from("orders")
+    .select(`
+      *,
+      buyers(*),
+      rifas(*)
+    `)
+    .eq("id", orderId)
+    .single();
+
+  if (orderFullError) throw orderFullError;
+
+  const { data: assignedTickets, error: assignedTicketsError } = await supabase
+    .from("tickets")
+    .select("*")
+    .eq("order_id", orderId);
+
+  if (assignedTicketsError) throw assignedTicketsError;
+
+  const combinaciones = (assignedTickets || []).map(t => t.combination).join("\n");
+
+  const mensaje = `Hola ${orderFull.buyers?.full_name || "cliente"}
+
+Tu compra fue confirmada en la rifa: ${orderFull.rifas?.title || "Rifa"}
+
+Tus combinaciones son:
+${combinaciones || "Sin combinaciones registradas"}
+
+Guarda este mensaje como comprobante. ¡Suerte!`;
+
+  const waResp = await sendWhatsAppText(orderFull.buyers?.phone, mensaje);
+
+  await supabase
+    .from("message_logs")
+    .update({
+      send_status: "sent",
+      provider_message_id: waResp?.messages?.[0]?.id || null,
+    })
+    .eq("order_id", orderId)
+    .eq("channel", "whatsapp");
+
+  return waResp;
+}
 app.post("/wompi/webhook", async (req, res) => {
   try {
     const tx = req.body?.data?.transaction;
