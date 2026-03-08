@@ -516,6 +516,91 @@ app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res)
     return res.status(500).send(e.message);
   }
 });
+app.get("/panel", async (req, res) => {
+  try {
+    const { data: rifas, error } = await supabase
+      .from("rifas")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const base = getBaseUrl(req);
+
+    const rows = (rifas || []).map((r) => {
+      const linkPublico = r.slug
+        ? `${base}/rifa/${r.slug}`
+        : `${base}/rifa-publica/${r.id}`;
+
+      return `
+        <tr>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.title || ""}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.prize || ""}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.modality || ""}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:right;">$${Number(r.price_per_ticket || 0).toLocaleString("es-CO")}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.max_tickets || 0}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.sold_tickets || 0}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.available_tickets || 0}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.status || ""}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
+            <a href="${linkPublico}" target="_blank" style="color:#2563eb;text-decoration:none;font-weight:700;">Abrir</a>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel de rifas</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#111;">
+  <div style="max-width:1200px;margin:30px auto;padding:16px;">
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div>
+        <h1 style="margin:0;">Panel de rifas</h1>
+        <div style="margin-top:6px;color:#64748b;">Resumen general de rifas creadas</div>
+      </div>
+
+      <a href="${base}/crear-rifa"
+         style="background:#16a34a;color:white;text-decoration:none;padding:12px 16px;border-radius:10px;font-weight:700;">
+        + Crear rifa
+      </a>
+    </div>
+
+    <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
+      <table style="width:100%;border-collapse:collapse;min-width:1000px;">
+        <thead style="background:#0f172a;color:white;">
+          <tr>
+            <th style="padding:14px;text-align:left;">Rifa</th>
+            <th style="padding:14px;text-align:left;">Premio</th>
+            <th style="padding:14px;text-align:center;">Modalidad</th>
+            <th style="padding:14px;text-align:right;">Precio</th>
+            <th style="padding:14px;text-align:center;">Máx.</th>
+            <th style="padding:14px;text-align:center;">Vendidas</th>
+            <th style="padding:14px;text-align:center;">Disponibles</th>
+            <th style="padding:14px;text-align:center;">Estado</th>
+            <th style="padding:14px;text-align:left;">Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || `<tr><td colspan="9" style="padding:18px;">No hay rifas creadas todavía.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
+    `);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
 app.get("/rifa/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
