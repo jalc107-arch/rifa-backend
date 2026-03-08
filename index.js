@@ -162,7 +162,6 @@ app.get("/crear-demo", async (req, res) => {
       links: {
         ver: `${base}/rifas/${data.id}`,
         comprar: `${base}/rifas/${data.id}/comprar`,
-        pagar_demo: `${base}/rifas/${data.id}/comprar?buyer_name=Comprador%20Demo&buyer_phone=3011111111&qty=1`,
       },
     });
   } catch (e) {
@@ -199,8 +198,6 @@ app.get("/rifas/:rifaId", async (req, res) => {
 // =========================
 // CREAR ORDEN + BUYER EN SUPABASE
 // =========================
-// Ejemplo:
-// /rifas/:rifaId/comprar?buyer_name=Juan&buyer_phone=3001234567&buyer_email=a@a.com&qty=2
 app.get("/rifas/:rifaId/comprar", async (req, res) => {
   try {
     const { rifaId } = req.params;
@@ -221,7 +218,6 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
       });
     }
 
-    // 1) Consultar rifa
     const { data: rifa, error: rifaError } = await supabase
       .from("rifas")
       .select("*")
@@ -247,7 +243,6 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
     const subtotal = qty * pricePerTicket;
     const totalPaid = subtotal;
 
-    // 2) Buscar buyer existente por teléfono o crearlo
     let buyer = null;
 
     const { data: existingBuyer, error: buyerLookupError } = await supabase
@@ -276,7 +271,6 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
       buyer = newBuyer;
     }
 
-    // 3) Crear orden
     const orderReference = genOrderReference();
 
     const { data: order, error: orderError } = await supabase
@@ -296,7 +290,6 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
 
     if (orderError) throw orderError;
 
-    // 4) Crear registro de pago preliminar
     const { error: paymentError } = await supabase
       .from("payments")
       .insert({
@@ -432,12 +425,25 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
 
     const paymentReference = reference || payment.external_reference;
     const currency = "COP";
-    const amountInCents = String(order.totalPagar * 100);
+    const amountInCents = Math.round(Number(order.total_paid) * 100).toString();
 
     const signature = crypto
       .createHash("sha256")
-      .update(paymentReference + amountInCents + currency + WOMPI_INTEGRITY_SECRET)
+      .update(`${paymentReference}${amountInCents}${currency}${WOMPI_INTEGRITY_SECRET}`)
       .digest("hex");
+
+    console.log("WOMPI DEBUG", {
+      paymentReference,
+      amountInCents,
+      currency,
+      integritySecretLength: WOMPI_INTEGRITY_SECRET.length,
+      publicKeyPrefix: WOMPI_PUBLIC_KEY.slice(0, 9),
+      signature,
+      orderTotalPaid: order.total_paid,
+      orderId: order.id,
+      paymentId: payment.id,
+      externalReferenceFromDb: payment.external_reference,
+    });
 
     const base = getBaseUrl(req);
     const redirectUrl = `${base}/rifas/${rifaId}/orden/${orderId}`;
@@ -458,6 +464,15 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
     <div style="opacity:.85;margin-bottom:8px;">Comprador: <b>${order.buyers.full_name}</b></div>
     <div style="opacity:.85;margin-bottom:8px;">Orden: <b>${orderId}</b></div>
     <div style="opacity:.85;margin-bottom:16px;">Total: <b>$${Number(order.total_paid).toLocaleString("es-CO")} COP</b></div>
+
+    <pre style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:12px;overflow:auto;white-space:pre-wrap;margin-bottom:16px;">
+paymentReference: ${paymentReference}
+amountInCents: ${amountInCents}
+currency: ${currency}
+signature: ${signature}
+publicKeyPrefix: ${WOMPI_PUBLIC_KEY.slice(0, 20)}...
+integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
+    </pre>
 
     <script
       src="https://checkout.wompi.co/widget.js"
@@ -502,7 +517,6 @@ app.post("/wompi/webhook", async (req, res) => {
     const status = tx.status || null;
     const wompiTxId = tx.id || null;
 
-    // 1) Buscar payment por reference
     const { data: payment, error: paymentLookupError } = await supabase
       .from("payments")
       .select("*")
@@ -517,7 +531,6 @@ app.post("/wompi/webhook", async (req, res) => {
       return res.json({ ok: true, found: false });
     }
 
-    // 2) Actualizar payment
     const { error: paymentUpdateError } = await supabase
       .from("payments")
       .update({
@@ -531,7 +544,6 @@ app.post("/wompi/webhook", async (req, res) => {
 
     if (paymentUpdateError) throw paymentUpdateError;
 
-    // 3) Buscar orden
     const { data: order, error: orderLookupError } = await supabase
       .from("orders")
       .select(`
@@ -543,7 +555,6 @@ app.post("/wompi/webhook", async (req, res) => {
 
     if (orderLookupError) throw orderLookupError;
 
-    // 4) Aplicar lógica según estado
     if (status === "APPROVED") {
       const { error: orderUpdateError } = await supabase
         .from("orders")
@@ -555,7 +566,6 @@ app.post("/wompi/webhook", async (req, res) => {
 
       if (orderUpdateError) throw orderUpdateError;
 
-      // Asignar boletas
       const { error: assignError } = await supabase.rpc("assign_random_tickets", {
         p_rifa_id: order.rifa_id,
         p_order_id: order.id,
@@ -567,7 +577,6 @@ app.post("/wompi/webhook", async (req, res) => {
         console.error("Error asignando tickets:", assignError.message);
       }
 
-      // Registrar mensaje
       const { error: messageError } = await supabase.rpc("log_ticket_message", {
         p_order_id: order.id,
         p_channel: "whatsapp",
