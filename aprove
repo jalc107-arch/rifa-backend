@@ -1478,7 +1478,19 @@ app.post("/wompi/webhook", async (req, res) => {
         console.error("log_ticket_message error:", messageError.message);
       }
     }
+try {
+        await sendPurchaseWhatsApp(order.id);
+      } catch (waError) {
+        console.error("sendPurchaseWhatsApp error:", waError.message);
 
+        await supabase
+          .from("message_logs")
+          .update({
+            send_status: "failed",
+          })
+          .eq("order_id", order.id)
+          .eq("channel", "whatsapp");
+      }
     if (status === "DECLINED" || status === "VOIDED" || status === "ERROR") {
       const { error: orderFailError } = await supabase
         .from("orders")
