@@ -28,7 +28,7 @@ function getBaseUrl(req) {
 }
 
 function genReference() {
-  return "ord_" + crypto.randomBytes(6).toString("hex");
+  return "ord_" + crypto.randomBytes(8).toString("hex");
 }
 
 function now() {
@@ -176,6 +176,7 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
       buyer = newBuyer;
     }
 
+    // Referencia única por cada compra, como exige Wompi.
     const reference = genReference();
 
     const { data: order, error: orderError } = await supabase
@@ -315,6 +316,7 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
     const currency = "COP";
     const amountInCents = Math.round(Number(order.total_paid) * 100).toString();
 
+    // Firma: <Reference><Amount><Currency><IntegritySecret>
     const signature = crypto
       .createHash("sha256")
       .update(`${paymentReference}${amountInCents}${currency}${WOMPI_INTEGRITY_SECRET}`)
@@ -361,9 +363,18 @@ publicKeyPrefix: ${WOMPI_PUBLIC_KEY.slice(0, 20)}...
 integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
   </pre>
 
-  <button id="wompi-pay-button" style="background:#2f6df6;color:white;border:none;padding:12px 18px;border-radius:8px;cursor:pointer;font-size:16px;">
-    Paga con Wompi
-  </button>
+  <form action="https://checkout.wompi.co/p/" method="GET">
+    <input type="hidden" name="public-key" value="${WOMPI_PUBLIC_KEY}" />
+    <input type="hidden" name="currency" value="${currency}" />
+    <input type="hidden" name="amount-in-cents" value="${amountInCents}" />
+    <input type="hidden" name="reference" value="${paymentReference}" />
+    <input type="hidden" name="signature:integrity" value="${signature}" />
+    <input type="hidden" name="redirect-url" value="${redirectUrl}" />
+
+    <button type="submit" style="background:#2f6df6;color:white;border:none;padding:12px 18px;border-radius:8px;cursor:pointer;font-size:16px;">
+      Paga con Wompi
+    </button>
+  </form>
 
   <div style="margin-top:18px;font-size:12px;opacity:.75;">
     * Al terminar el pago, Wompi redirige al detalle de la orden y el webhook confirma la compra.
@@ -372,24 +383,6 @@ integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
   <div style="margin-top:14px;">
     <a href="${redirectUrl}" style="text-decoration:none;color:#1a7f37;font-weight:700;">← Ver orden</a>
   </div>
-
-  <script src="https://checkout.wompi.co/widget.js"></script>
-  <script>
-    const checkout = new WidgetCheckout({
-      currency: "${currency}",
-      amountInCents: ${amountInCents},
-      reference: "${paymentReference}",
-      publicKey: "${WOMPI_PUBLIC_KEY}",
-      signature: { integrity: "${signature}" },
-      redirectUrl: "${redirectUrl}"
-    });
-
-    document.getElementById("wompi-pay-button").addEventListener("click", function () {
-      checkout.open(function (result) {
-        console.log("WOMPI RESULT", result);
-      });
-    });
-  </script>
 </body>
 </html>
     `);
