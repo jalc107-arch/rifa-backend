@@ -888,7 +888,7 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
       </div>
 
       <div style="padding:24px;">
-        <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:24px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">
           
           <div>
             <div style="margin-bottom:18px;">
