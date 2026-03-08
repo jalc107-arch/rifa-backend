@@ -112,7 +112,99 @@ app.get("/rifas/:rifaId", async (req, res) => {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
+app.get("/comprar-directo/:rifaId", async (req, res) => {
+  try {
+    const { rifaId } = req.params;
 
+    const buyerName = (req.query.buyer_name || "").toString().trim();
+    const buyerPhone = (req.query.buyer_phone || "").toString().trim();
+    const buyerEmail = (req.query.buyer_email || "").toString().trim();
+    const qty = Number(req.query.qty || 1);
+
+    if (!buyerName || !buyerPhone) {
+      return res.status(400).send("Faltan buyer_name o buyer_phone");
+    }
+
+    if (!Number.isInteger(qty) || qty <= 0) {
+      return res.status(400).send("qty inválido");
+    }
+
+    const { data: rifa, error: rifaError } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("id", rifaId)
+      .single();
+
+    if (rifaError || !rifa) {
+      return res.status(404).send("Rifa no existe");
+    }
+
+    const total = qty * Number(rifa.price_per_ticket);
+
+    let buyer = null;
+
+    const { data: existingBuyer, error: existingBuyerError } = await supabase
+      .from("buyers")
+      .select("*")
+      .eq("phone", buyerPhone)
+      .maybeSingle();
+
+    if (existingBuyerError) throw existingBuyerError;
+
+    if (existingBuyer) {
+      buyer = existingBuyer;
+    } else {
+      const { data: newBuyer, error: newBuyerError } = await supabase
+        .from("buyers")
+        .insert({
+          full_name: buyerName,
+          phone: buyerPhone,
+          email: buyerEmail || null,
+        })
+        .select()
+        .single();
+
+      if (newBuyerError) throw newBuyerError;
+      buyer = newBuyer;
+    }
+
+    const reference = genReference();
+
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        rifa_id: rifaId,
+        buyer_id: buyer.id,
+        qty,
+        subtotal: total,
+        total_paid: total,
+        payment_status: "created",
+      })
+      .select()
+      .single();
+
+    if (orderError) throw orderError;
+
+    const { error: paymentInsertError } = await supabase
+      .from("payments")
+      .insert({
+        order_id: order.id,
+        provider: "wompi",
+        external_reference: reference,
+        amount: total,
+        status: "CREATED",
+      });
+
+    if (paymentInsertError) throw paymentInsertError;
+
+    const base = getBaseUrl(req);
+    const pagarUrl = `${base}/rifas/${rifaId}/orden/${order.id}/pagar?reference=${reference}`;
+
+    return res.redirect(pagarUrl);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
 app.get("/rifas/:rifaId/comprar", async (req, res) => {
   try {
     const { rifaId } = req.params;
