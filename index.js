@@ -439,17 +439,6 @@ app.get("/crear-rifa", async (req, res) => {
 </html>
   `);
 });
-function slugify(text) {
-  return String(text || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ñ/g, "n")
-    .replace(/[^a-z0-9\\s-]/g, "")
-    .trim()
-    .replace(/\\s+/g, "-")
-    .replace(/-+/g, "-");
-}
 
 app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res) => {
   try {
