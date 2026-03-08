@@ -957,7 +957,7 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
 Compra aquí 👇
 ${base}/r/${rifa.slug || rifa.id}`)}"
     target="_blank"
-    style="display:inline-block;background:#25D366;color:white;text-decoration:none;padding:12px 16px;border-radius:12px;font-weight:800;"
+    style="display:block;width:100%;box-sizing:border-box;text-align:center;background:#25D366;color:white;text-decoration:none;padding:14px 16px;border-radius:12px;font-weight:800;font-size:16px;"
   >
     Compartir por WhatsApp
   </a>
