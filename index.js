@@ -1382,34 +1382,25 @@ async function sendWhatsAppText(to, body) {
     throw new Error("Faltan variables de WhatsApp");
   }
 
-  const cleanTo = String(to || "").replace(/\D/g, "");
-  const toInternational = cleanTo.startsWith("57") ? cleanTo : `57${cleanTo}`;
+ const cleanTo = String(to || "").replace(/\D/g, "");
+const toInternational = cleanTo.startsWith("57") ? cleanTo : `57${cleanTo}`;
 
-  
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: order.buyers.phone,
-      type: "text",
-      text: {
-        body: `🎟️ Pago confirmado
-
-Tus boletas han sido asignadas automáticamente.
-
-Puedes ver tu compra aquí:
-https://rifa-backend-production-4009.up.railway.app/rifa/${order.rifas.slug}
-
-¡Mucha suerte! 🍀`
-      }
-    })
-  }
-);
+const resp = await fetch(
+  `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`,
+  {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({
       messaging_product: "whatsapp",
       to: toInternational,
       type: "text",
-      text: { body },
-    }),
-  });
+      text: { body }
+    })
+  }
+);
 
   const data = await resp.json();
 
