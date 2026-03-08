@@ -6,6 +6,21 @@ const app = express();
 app.use(express.json());
 app.set("trust proxy", 1);
 
+// WEBHOOK VERIFICACION WHATSAPP
+app.get("/webhook", (req, res) => {
+  const verify_token = "rifa_verify_token";
+
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === verify_token) {
+    console.log("Webhook verificado correctamente");
+    res.status(200).send(challenge);
+  } else {
+    res.sendStatus(403);
+  }
+});
 const PORT = process.env.PORT || 3000;
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
