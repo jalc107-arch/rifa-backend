@@ -697,11 +697,34 @@ app.get("/panel/rifa/:rifaId", async (req, res) => {
       </div>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <a href="${linkPublico}" target="_blank" style="background:#2563eb;color:white;text-decoration:none;padding:12px 16px;border-radius:10px;font-weight:700;">
-          Abrir rifa pública
-        </a>
+  <a href="${linkPublico}" target="_blank" style="background:#2563eb;color:white;text-decoration:none;padding:12px 16px;border-radius:10px;font-weight:700;">
+    Abrir rifa pública
+  </a>
+</div>
+<div style="background:#fff;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
+  <h2 style="margin-top:0;">Realizar sorteo</h2>
+  <form method="POST" action="${base}/panel/rifa/${rifa.id}/sorteo">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+      <div style="flex:1;min-width:240px;">
+        <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">Combinación ganadora</label>
+        <input
+          type="text"
+          name="winning_combination"
+          placeholder="Ej: 12-40-41"
+          required
+          style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
+        />
       </div>
+
+      <button
+        type="submit"
+        style="background:#dc2626;color:#fff;border:none;padding:12px 18px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;"
+      >
+        Realizar sorteo
+      </button>
     </div>
+  </form>
+</div>
 
     <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px;">
       <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
