@@ -432,7 +432,7 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
 
     const paymentReference = reference || payment.external_reference;
     const currency = "COP";
-    const amountInCents = String(Number(order.total_paid) * 100);
+    const amountInCents = String(order.totalPagar * 100);
 
     const signature = crypto
       .createHash("sha256")
