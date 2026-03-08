@@ -601,6 +601,153 @@ app.get("/panel", async (req, res) => {
     res.status(500).send(e.message);
   }
 });
+app.get("/panel/rifa/:rifaId", async (req, res) => {
+  try {
+    const { rifaId } = req.params;
+
+    const { data: rifa, error: rifaError } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("id", rifaId)
+      .single();
+
+    if (rifaError || !rifa) {
+      return res.status(404).send("Rifa no encontrada");
+    }
+
+    const { data: orders, error: ordersError } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        buyers (*)
+      `)
+      .eq("rifa_id", rifaId)
+      .order("created_at", { ascending: false });
+
+    if (ordersError) throw ordersError;
+
+    const orderIds = (orders || []).map(o => o.id);
+
+    let tickets = [];
+    if (orderIds.length > 0) {
+      const { data: ticketRows, error: ticketsError } = await supabase
+        .from("tickets")
+        .select("*")
+        .in("order_id", orderIds);
+
+      if (ticketsError) throw ticketsError;
+      tickets = ticketRows || [];
+    }
+
+    const ticketsByOrder = {};
+    for (const t of tickets) {
+      if (!ticketsByOrder[t.order_id]) ticketsByOrder[t.order_id] = [];
+      ticketsByOrder[t.order_id].push(t.combination);
+    }
+
+    const totalRecaudado = (orders || []).reduce((acc, o) => {
+      if (o.payment_status === "paid") {
+        return acc + Number(o.total_paid || 0);
+      }
+      return acc;
+    }, 0);
+
+    const rows = (orders || []).map((o) => {
+      const combinaciones = ticketsByOrder[o.id] || [];
+      const buyerName = o.buyers?.full_name || "Sin nombre";
+      const buyerPhone = o.buyers?.phone || "Sin teléfono";
+
+      return `
+        <tr>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${buyerName}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${buyerPhone}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${o.qty || 0}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:right;">$${Number(o.total_paid || 0).toLocaleString("es-CO")}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${o.payment_status || ""}</td>
+          <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${combinaciones.length ? combinaciones.join("<br/>") : "-"}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const base = getBaseUrl(req);
+    const linkPublico = rifa.slug
+      ? `${base}/rifa/${rifa.slug}`
+      : `${base}/rifa-publica/${rifa.id}`;
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel de rifa</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#111;">
+  <div style="max-width:1200px;margin:30px auto;padding:16px;">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+      <div>
+        <a href="${base}/panel" style="display:inline-block;margin-bottom:10px;color:#2563eb;text-decoration:none;font-weight:700;">← Volver al panel</a>
+        <h1 style="margin:0;">${rifa.title}</h1>
+        <div style="margin-top:6px;color:#475569;">Premio: <b>${rifa.prize || ""}</b></div>
+        <div style="margin-top:6px;color:#475569;">Estado: <b>${rifa.status || ""}</b></div>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="${linkPublico}" target="_blank" style="background:#2563eb;color:white;text-decoration:none;padding:12px 16px;border-radius:10px;font-weight:700;">
+          Abrir rifa pública
+        </a>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px;">
+      <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+        <div style="font-size:13px;color:#64748b;">Precio por boleta</div>
+        <div style="font-size:28px;font-weight:800;margin-top:8px;">$${Number(rifa.price_per_ticket || 0).toLocaleString("es-CO")}</div>
+      </div>
+
+      <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+        <div style="font-size:13px;color:#64748b;">Vendidas</div>
+        <div style="font-size:28px;font-weight:800;margin-top:8px;">${rifa.sold_tickets || 0}</div>
+      </div>
+
+      <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+        <div style="font-size:13px;color:#64748b;">Disponibles</div>
+        <div style="font-size:28px;font-weight:800;margin-top:8px;">${rifa.available_tickets || 0}</div>
+      </div>
+
+      <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+        <div style="font-size:13px;color:#64748b;">Recaudado</div>
+        <div style="font-size:28px;font-weight:800;margin-top:8px;">$${Number(totalRecaudado).toLocaleString("es-CO")}</div>
+      </div>
+    </div>
+
+    <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
+      <table style="width:100%;border-collapse:collapse;min-width:1000px;">
+        <thead style="background:#0f172a;color:white;">
+          <tr>
+            <th style="padding:14px;text-align:left;">Comprador</th>
+            <th style="padding:14px;text-align:left;">Teléfono</th>
+            <th style="padding:14px;text-align:center;">Cantidad</th>
+            <th style="padding:14px;text-align:right;">Total</th>
+            <th style="padding:14px;text-align:center;">Pago</th>
+            <th style="padding:14px;text-align:left;">Combinaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || `<tr><td colspan="6" style="padding:18px;">No hay compras registradas todavía.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
+    `);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
 app.get("/rifa/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
