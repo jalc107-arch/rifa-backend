@@ -759,7 +759,25 @@ const { data: lastResult } = await supabase
         <div style="font-size:28px;font-weight:800;margin-top:8px;">$${Number(totalRecaudado).toLocaleString("es-CO")}</div>
       </div>
     </div>
+    
+${lastResult ? `
+<div style="background:#ecfdf5;border:1px solid #86efac;border-radius:16px;padding:18px;margin-bottom:18px;">
+<h3 style="margin-top:0;">Último resultado</h3>
 
+<div style="margin-bottom:8px;">
+<b>Combinación ganadora:</b> ${lastResult.winning_combination}
+</div>
+
+<div style="margin-bottom:8px;">
+<b>Ganador:</b> ${lastResult.buyers?.full_name || "Sin ganador"}
+</div>
+
+<div>
+<b>Teléfono:</b> ${lastResult.buyers?.phone || "-"}
+</div>
+
+</div>
+` : ""}
     <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
       <table style="width:100%;border-collapse:collapse;min-width:1000px;">
         <thead style="background:#0f172a;color:white;">
