@@ -572,7 +572,14 @@ app.get("/panel/rifa/:rifaId", async (req, res) => {
       }
       return acc;
     }, 0);
+const totalComision = (orders || []).reduce((acc, o) => {
+  if (o.payment_status === "paid") {
+    return acc + Number(o.commission || 0);
+  }
+  return acc;
+}, 0);
 
+const totalOrganizador = totalRecaudado - totalComision;
     const rows = (orders || []).map((o) => {
       const combinaciones = ticketsByOrder[o.id] || [];
       const buyerName = o.buyers?.full_name || "Sin nombre";
