@@ -1385,14 +1385,7 @@ async function sendWhatsAppText(to, body) {
   const cleanTo = String(to || "").replace(/\D/g, "");
   const toInternational = cleanTo.startsWith("57") ? cleanTo : `57${cleanTo}`;
 
-  const resp = await fetch(
-  `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
-  {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
-      "Content-Type": "application/json"
-    },
+  
     body: JSON.stringify({
       messaging_product: "whatsapp",
       to: order.buyers.phone,
