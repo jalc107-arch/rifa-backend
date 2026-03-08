@@ -948,16 +948,9 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
           </div>
 <div style="margin-top:12px;margin-bottom:14px;">
   <a
-    href="https://wa.me/?text=${encodeURIComponent(`🎟️ Participa en la rifa: ${rifa.title}
-
-🏆 Premio: ${rifa.prize || "Premio"}
-💰 Valor boleta: $${Number(rifa.price_per_ticket).toLocaleString("es-CO")}
-📊 Vendidas: ${vendidos} de ${maximos}
-
-Compra aquí 👇
-${base}/r/${rifa.slug || rifa.id}`)}"
+    href="https://wa.me/?text=${encodeURIComponent(`🎟️ Participa en la rifa: ${rifa.title} - Premio: ${rifa.prize || "Premio"} - Boleta: $${Number(rifa.price_per_ticket).toLocaleString("es-CO")} - Vendidas: ${vendidos}/${maximos} - Compra aquí ${rifa.slug ? `${base}/r/${rifa.slug}` : `${base}/rifa-publica/${rifa.id}`}`)}"
     target="_blank"
-   style="display:block;width:100%;text-align:center;background:#25D366;color:white;text-decoration:none;padding:14px;border-radius:12px;font-weight:800;font-size:16px;"
+    style="display:block;width:100%;text-align:center;background:#25D366;color:white;text-decoration:none;padding:14px;border-radius:12px;font-weight:800;font-size:16px;"
   >
     Compartir por WhatsApp
   </a>
