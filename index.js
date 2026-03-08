@@ -205,6 +205,30 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
     return res.status(500).send(e.message);
   }
 });
+app.get("/rifa/:slug", async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const { data: rifa, error } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("slug", slug)
+      .single();
+
+    if (error || !rifa) {
+      return res.status(404).send("Rifa no encontrada");
+    }
+
+    const base = getBaseUrl(req);
+
+    return res.redirect(
+      `${base}/rifa-publica/${rifa.id}`
+    );
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
 app.get("/rifa-publica/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
