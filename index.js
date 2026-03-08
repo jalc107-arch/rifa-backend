@@ -1385,12 +1385,31 @@ async function sendWhatsAppText(to, body) {
   const cleanTo = String(to || "").replace(/\D/g, "");
   const toInternational = cleanTo.startsWith("57") ? cleanTo : `57${cleanTo}`;
 
-  const resp = await fetch(`https://graph.facebook.com/v25.0/${phoneNumberId}/messages`, {
+  const resp = await fetch(
+  `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+  {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      "Authorization": `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+      "Content-Type": "application/json"
     },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to: order.buyers.phone,
+      type: "text",
+      text: {
+        body: `🎟️ Pago confirmado
+
+Tus boletas han sido asignadas automáticamente.
+
+Puedes ver tu compra aquí:
+https://rifa-backend-production-4009.up.railway.app/rifa/${order.rifas.slug}
+
+¡Mucha suerte! 🍀`
+      }
+    })
+  }
+);
     body: JSON.stringify({
       messaging_product: "whatsapp",
       to: toInternational,
