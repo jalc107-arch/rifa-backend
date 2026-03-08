@@ -35,6 +35,18 @@ function now() {
   return new Date().toISOString();
 }
 
+function slugify(text) {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ñ/g, "n")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 app.get("/", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -112,6 +124,7 @@ app.get("/rifas/:rifaId", async (req, res) => {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
+
 app.get("/comprar-directo/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
@@ -140,6 +153,7 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
     }
 
     const total = qty * Number(rifa.price_per_ticket);
+    const commission = total * 0.03;
 
     let buyer = null;
 
@@ -170,19 +184,19 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
 
     const reference = genReference();
 
-   const { data: order, error: orderError } = await supabase
-  .from("orders")
-  .insert({
-    rifa_id: rifaId,
-    buyer_id: buyer.id,
-    qty,
-    subtotal: total,
-    total_paid: total,
-    commission,
-    payment_status: "created",
-  })
-  .select()
-  .single();
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        rifa_id: rifaId,
+        buyer_id: buyer.id,
+        qty,
+        subtotal: total,
+        total_paid: total,
+        commission,
+        payment_status: "created",
+      })
+      .select()
+      .single();
 
     if (orderError) throw orderError;
 
@@ -206,168 +220,7 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
     return res.status(500).send(e.message);
   }
 });
-app.get("/crear-rifa", async (req, res) => {
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.send(`
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Crear rifa</title>
-</head>
-<body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
-  <div style="max-width:760px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
-    <h1 style="margin-top:0;">Crear rifa</h1>
 
-    <form method="POST" action="/crear-rifa">
-      <div style="margin-bottom:12px;">
-        <label><b>Owner ID</b></label><br/>
-        <input type="text" name="owner_id" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <label><b>Nombre de la rifa</b></label><br/>
-        <input type="text" name="title" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <label><b>Premio</b></label><br/>
-        <input type="text" name="prize" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <label><b>Descripción</b></label><br/>
-        <textarea name="description"
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;min-height:100px;"></textarea>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <label><b>Modalidad</b></label><br/>
-        <select name="modality"
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;">
-          <option value="2">2 balotas</option>
-          <option value="3" selected>3 balotas</option>
-          <option value="4">4 balotas</option>
-          <option value="5">5 balotas</option>
-        </select>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <label><b>Precio por boleta</b></label><br/>
-        <input type="number" name="price_per_ticket" min="1" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <label><b>Máximo de boletas</b></label><br/>
-        <input type="number" name="max_tickets" min="1" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
-
-      <div style="margin-bottom:18px;">
-        <label><b>Fecha del sorteo</b></label><br/>
-        <input type="datetime-local" name="draw_date" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
-
-      <button type="submit"
-        style="background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;">
-        Crear rifa
-      </button>
-    </form>
-  </div>
-</body>
-</html>
-  `);
-});
-function slugify(text) {
-  return String(text || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ñ/g, "n")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-}
-
-app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res) => {
-  try {
-    const ownerId = String(req.body.owner_id || "").trim();
-    const title = String(req.body.title || "").trim();
-    const prize = String(req.body.prize || "").trim();
-    const description = String(req.body.description || "").trim();
-    const modality = Number(req.body.modality || 3);
-    const pricePerTicket = Number(req.body.price_per_ticket || 0);
-    const maxTickets = Number(req.body.max_tickets || 0);
-    const drawDateRaw = String(req.body.draw_date || "").trim();
-
-    if (!ownerId || !title || !prize || !drawDateRaw) {
-      return res.status(400).send("Faltan campos obligatorios");
-    }
-
-    if (![2, 3, 4, 5].includes(modality)) {
-      return res.status(400).send("Modalidad inválida");
-    }
-
-    if (!Number.isFinite(pricePerTicket) || pricePerTicket <= 0) {
-      return res.status(400).send("Precio inválido");
-    }
-
-    if (!Number.isInteger(maxTickets) || maxTickets <= 0) {
-      return res.status(400).send("Máximo de boletas inválido");
-    }
-
-    const drawDate = new Date(drawDateRaw);
-    if (Number.isNaN(drawDate.getTime())) {
-      return res.status(400).send("Fecha inválida");
-    }
-
-    let slug = slugify(title);
-    if (!slug) slug = `rifa-${Date.now()}`;
-
-    const { data: existingSlug } = await supabase
-      .from("rifas")
-      .select("id, slug")
-      .eq("slug", slug)
-      .maybeSingle();
-
-    if (existingSlug) {
-      slug = `${slug}-${Date.now().toString().slice(-6)}`;
-    }
-
-    const { data: rifa, error } = await supabase
-      .from("rifas")
-      .insert({
-        owner_id: ownerId,
-        title,
-        prize,
-        description,
-        modality,
-        price_per_ticket: pricePerTicket,
-        max_tickets: maxTickets,
-        sold_tickets: 0,
-        available_tickets: maxTickets,
-        draw_date: drawDate.toISOString(),
-        status: "active",
-        slug,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    const base = getBaseUrl(req);
-    return res.redirect(`${base}/rifa/${rifa.slug}`);
-  } catch (e) {
-    return res.status(500).send(e.message);
-  }
-});
 app.get("/crear-rifa", async (req, res) => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.send(`
@@ -517,19 +370,17 @@ app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res)
     return res.status(500).send(e.message);
   }
 });
-app.post("/registro", express.urlencoded({ extended: true }), async (req, res) => {
 
+app.post("/registro", express.urlencoded({ extended: true }), async (req, res) => {
   const { email, password, name } = req.body;
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("users")
     .insert({
       email,
       password,
-      name
-    })
-    .select()
-    .single();
+      name,
+    });
 
   if (error) {
     return res.send("Error creando usuario");
@@ -537,8 +388,8 @@ app.post("/registro", express.urlencoded({ extended: true }), async (req, res) =
 
   res.send("Usuario creado");
 });
-app.post("/login", express.urlencoded({ extended: true }), async (req, res) => {
 
+app.post("/login", express.urlencoded({ extended: true }), async (req, res) => {
   const { email, password } = req.body;
 
   const { data } = await supabase
@@ -554,6 +405,7 @@ app.post("/login", express.urlencoded({ extended: true }), async (req, res) => {
 
   res.redirect("/panel");
 });
+
 app.get("/panel", async (req, res) => {
   try {
     const { data: rifas, error } = await supabase
@@ -582,8 +434,8 @@ app.get("/panel", async (req, res) => {
           <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.status || ""}</td>
           <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
             <a href="${base}/panel/rifa/${r.id}" style="color:#2563eb;text-decoration:none;font-weight:700;">Ver panel</a>
-<br/>
-<a href="${linkPublico}" target="_blank" style="color:#16a34a;text-decoration:none;font-weight:700;">Abrir rifa</a>
+            <br/>
+            <a href="${linkPublico}" target="_blank" style="color:#16a34a;text-decoration:none;font-weight:700;">Abrir rifa</a>
           </td>
         </tr>
       `;
@@ -600,7 +452,6 @@ app.get("/panel", async (req, res) => {
 </head>
 <body style="margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#111;">
   <div style="max-width:1200px;margin:30px auto;padding:16px;">
-    
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
       <div>
         <h1 style="margin:0;">Panel de rifas</h1>
@@ -641,6 +492,7 @@ app.get("/panel", async (req, res) => {
     res.status(500).send(e.message);
   }
 });
+
 app.get("/panel/rifa/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
@@ -654,19 +506,21 @@ app.get("/panel/rifa/:rifaId", async (req, res) => {
     if (rifaError || !rifa) {
       return res.status(404).send("Rifa no encontrada");
     }
-const { data: lastResult } = await supabase
-  .from("raffle_results")
-  .select(`
-    *,
-    buyers:winner_buyer_id (
-      full_name,
-      phone
-    )
-  `)
-  .eq("rifa_id", rifaId)
-  .order("created_at", { ascending: false })
-  .limit(1)
-  .maybeSingle();
+
+    const { data: lastResult } = await supabase
+      .from("raffle_results")
+      .select(`
+        *,
+        buyers:winner_buyer_id (
+          full_name,
+          phone
+        )
+      `)
+      .eq("rifa_id", rifaId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
       .select(`
@@ -678,7 +532,7 @@ const { data: lastResult } = await supabase
 
     if (ordersError) throw ordersError;
 
-    const orderIds = (orders || []).map(o => o.id);
+    const orderIds = (orders || []).map((o) => o.id);
 
     let tickets = [];
     if (orderIds.length > 0) {
@@ -747,34 +601,36 @@ const { data: lastResult } = await supabase
       </div>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
-  <a href="${linkPublico}" target="_blank" style="background:#2563eb;color:white;text-decoration:none;padding:12px 16px;border-radius:10px;font-weight:700;">
-    Abrir rifa pública
-  </a>
-</div>
-<div style="background:#fff;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
-  <h2 style="margin-top:0;">Realizar sorteo</h2>
-  <form method="POST" action="${base}/panel/rifa/${rifa.id}/sorteo">
-    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
-      <div style="flex:1;min-width:240px;">
-        <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">Combinación ganadora</label>
-        <input
-          type="text"
-          name="winning_combination"
-          placeholder="Ej: 12-40-41"
-          required
-          style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
-        />
+        <a href="${linkPublico}" target="_blank" style="background:#2563eb;color:white;text-decoration:none;padding:12px 16px;border-radius:10px;font-weight:700;">
+          Abrir rifa pública
+        </a>
       </div>
-
-      <button
-        type="submit"
-        style="background:#dc2626;color:#fff;border:none;padding:12px 18px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;"
-      >
-        Realizar sorteo
-      </button>
     </div>
-  </form>
-</div>
+
+    <div style="background:#fff;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
+      <h2 style="margin-top:0;">Realizar sorteo</h2>
+      <form method="POST" action="${base}/panel/rifa/${rifa.id}/sorteo">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+          <div style="flex:1;min-width:240px;">
+            <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">Combinación ganadora</label>
+            <input
+              type="text"
+              name="winning_combination"
+              placeholder="Ej: 12-40-41"
+              required
+              style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
+            />
+          </div>
+
+          <button
+            type="submit"
+            style="background:#dc2626;color:#fff;border:none;padding:12px 18px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;"
+          >
+            Realizar sorteo
+          </button>
+        </div>
+      </form>
+    </div>
 
     <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px;">
       <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
@@ -797,25 +653,25 @@ const { data: lastResult } = await supabase
         <div style="font-size:28px;font-weight:800;margin-top:8px;">$${Number(totalRecaudado).toLocaleString("es-CO")}</div>
       </div>
     </div>
-    
-${lastResult ? `
-<div style="background:#ecfdf5;border:1px solid #86efac;border-radius:16px;padding:18px;margin-bottom:18px;">
-<h3 style="margin-top:0;">Último resultado</h3>
 
-<div style="margin-bottom:8px;">
-<b>Combinación ganadora:</b> ${lastResult.winning_combination}
-</div>
+    ${lastResult ? `
+    <div style="background:#ecfdf5;border:1px solid #86efac;border-radius:16px;padding:18px;margin-bottom:18px;">
+      <h3 style="margin-top:0;">Último resultado</h3>
 
-<div style="margin-bottom:8px;">
-<b>Ganador:</b> ${lastResult.buyers?.full_name || "Sin ganador"}
-</div>
+      <div style="margin-bottom:8px;">
+        <b>Combinación ganadora:</b> ${lastResult.winning_combination}
+      </div>
 
-<div>
-<b>Teléfono:</b> ${lastResult.buyers?.phone || "-"}
-</div>
+      <div style="margin-bottom:8px;">
+        <b>Ganador:</b> ${lastResult.buyers?.full_name || "Sin ganador"}
+      </div>
 
-</div>
-` : ""}
+      <div>
+        <b>Teléfono:</b> ${lastResult.buyers?.phone || "-"}
+      </div>
+    </div>
+    ` : ""}
+
     <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
       <table style="width:100%;border-collapse:collapse;min-width:1000px;">
         <thead style="background:#0f172a;color:white;">
@@ -841,6 +697,7 @@ ${lastResult ? `
     res.status(500).send(e.message);
   }
 });
+
 app.post("/panel/rifa/:rifaId/sorteo", express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { rifaId } = req.params;
@@ -898,6 +755,7 @@ app.post("/panel/rifa/:rifaId/sorteo", express.urlencoded({ extended: true }), a
     return res.status(500).send(e.message);
   }
 });
+
 app.get("/rifa/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
@@ -914,17 +772,14 @@ app.get("/rifa/:slug", async (req, res) => {
 
     const base = getBaseUrl(req);
 
-    return res.redirect(
-      `${base}/rifa-publica/${rifa.id}`
-    );
-
+    return res.redirect(`${base}/rifa-publica/${rifa.id}`);
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
+
 app.get("/r/:slug", async (req, res) => {
   try {
-
     const { slug } = req.params;
 
     const { data: rifa } = await supabase
@@ -940,13 +795,12 @@ app.get("/r/:slug", async (req, res) => {
     const base = getBaseUrl(req);
 
     return res.redirect(`${base}/rifa-publica/${rifa.id}`);
-
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
-app.get("/resultado/:slug", async (req, res) => {
 
+app.get("/resultado/:slug", async (req, res) => {
   const { slug } = req.params;
 
   const { data: rifa } = await supabase
@@ -969,36 +823,30 @@ app.get("/resultado/:slug", async (req, res) => {
       )
     `)
     .eq("rifa_id", rifa.id)
-    .order("created_at", { ascending:false })
+    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   res.send(`
   <html>
   <body style="font-family:Arial;background:#f6f7fb;padding:40px">
+    <div style="max-width:600px;margin:auto;background:white;padding:30px;border-radius:16px">
+      <h2>${rifa.title}</h2>
 
-  <div style="max-width:600px;margin:auto;background:white;padding:30px;border-radius:16px">
-
-  <h2>${rifa.title}</h2>
-
-  ${result ? `
-  <h3>Ganador</h3>
-
-  <p><b>Combinación:</b> ${result.winning_combination}</p>
-  <p><b>Nombre:</b> ${result.buyers?.full_name}</p>
-  <p><b>Teléfono:</b> ${result.buyers?.phone}</p>
-
-  ` : `
-  <h3>La rifa aún no tiene ganador</h3>
-  `}
-
-  </div>
-
+      ${result ? `
+      <h3>Ganador</h3>
+      <p><b>Combinación:</b> ${result.winning_combination}</p>
+      <p><b>Nombre:</b> ${result.buyers?.full_name}</p>
+      <p><b>Teléfono:</b> ${result.buyers?.phone}</p>
+      ` : `
+      <h3>La rifa aún no tiene ganador</h3>
+      `}
+    </div>
   </body>
   </html>
   `);
-
 });
+
 app.get("/rifa-publica/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
@@ -1152,6 +1000,7 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
     return res.status(500).send(e.message);
   }
 });
+
 app.get("/rifas/:rifaId/comprar", async (req, res) => {
   try {
     const { rifaId } = req.params;
@@ -1188,7 +1037,7 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
     }
 
     const total = qty * Number(rifa.price_per_ticket);
-    const commission = total * 0.10;
+    const commission = total * 0.03;
 
     let buyer = null;
 
@@ -1216,7 +1065,6 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
       buyer = newBuyer;
     }
 
-    // Referencia única por cada compra, como exige Wompi.
     const reference = genReference();
 
     const { data: order, error: orderError } = await supabase
@@ -1227,6 +1075,7 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
         qty,
         subtotal: total,
         total_paid: total,
+        commission,
         payment_status: "created",
       })
       .select()
@@ -1356,7 +1205,6 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
     const currency = "COP";
     const amountInCents = Math.round(Number(order.total_paid) * 100).toString();
 
-    // Firma: <Reference><Amount><Currency><IntegritySecret>
     const signature = crypto
       .createHash("sha256")
       .update(`${paymentReference}${amountInCents}${currency}${WOMPI_INTEGRITY_SECRET}`)
