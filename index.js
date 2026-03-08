@@ -170,18 +170,19 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
 
     const reference = genReference();
 
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        rifa_id: rifaId,
-        buyer_id: buyer.id,
-        qty,
-        subtotal: total,
-        total_paid: total,
-        payment_status: "created",
-      })
-      .select()
-      .single();
+   const { data: order, error: orderError } = await supabase
+  .from("orders")
+  .insert({
+    rifa_id: rifaId,
+    buyer_id: buyer.id,
+    qty,
+    subtotal: total,
+    total_paid: total,
+    commission,
+    payment_status: "created",
+  })
+  .select()
+  .single();
 
     if (orderError) throw orderError;
 
@@ -1187,6 +1188,7 @@ app.get("/rifas/:rifaId/comprar", async (req, res) => {
     }
 
     const total = qty * Number(rifa.price_per_ticket);
+    const commission = total * 0.10;
 
     let buyer = null;
 
