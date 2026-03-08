@@ -1401,6 +1401,7 @@ Guarda este mensaje como comprobante. ¡Suerte!`;
 }
 app.post("/wompi/webhook", async (req, res) => {
   try {
+
     const tx = req.body?.data?.transaction;
 
     if (!tx) {
@@ -1423,7 +1424,7 @@ app.post("/wompi/webhook", async (req, res) => {
       return res.json({ ok: true, found: false });
     }
 
-    const { error: paymentUpdateError } = await supabase
+    await supabase
       .from("payments")
       .update({
         provider_payment_id: providerPaymentId,
@@ -1434,10 +1435,9 @@ app.post("/wompi/webhook", async (req, res) => {
       })
       .eq("id", payment.id);
 
-    if (paymentUpdateError) throw paymentUpdateError;
-
     if (status === "APPROVED") {
-      const { data: order, error: orderLookupError } = await supabase
+
+      const { data: order } = await supabase
         .from("orders")
         .select(`
           *,
@@ -1446,9 +1446,7 @@ app.post("/wompi/webhook", async (req, res) => {
         .eq("id", payment.order_id)
         .single();
 
-      if (orderLookupError) throw orderLookupError;
-
-      const { error: orderUpdateError } = await supabase
+      await supabase
         .from("orders")
         .update({
           payment_status: "paid",
@@ -1456,46 +1454,13 @@ app.post("/wompi/webhook", async (req, res) => {
         })
         .eq("id", payment.order_id);
 
-      if (orderUpdateError) throw orderUpdateError;
-
       const { error: assignError } = await supabase.rpc("assign_random_tickets", {
-  p_rifa_id: order.rifa_id,
-  p_order_id: order.id,
-  p_qty: order.qty,
-  p_modality: order.rifas.modality,
-});
+        p_rifa_id: order.rifa_id,
+        p_order_id: order.id,
+        p_qty: order.qty,
+        p_modality: order.rifas.modality,
+      });
 
-if (assignError) {
-  console.error("assign_random_tickets error:", assignError.message);
-} else {
-
-  await fetch(
-    "https://graph.facebook.com/v18.0/983823111489632/messages",
-    {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer TU_ACCESS_TOKEN",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: payment.phone,
-        type: "text",
-        text: {
-          body: `🎟️ Pago confirmado
-
-Tus boletas han sido asignadas automáticamente.
-
-Puedes ver tu compra aquí:
-https://rifa-backend-production-4009.up.railway.app/rifa/${order.rifa_id}
-
-¡Mucha suerte! 🍀`
-        }
-      })
-    }
-  );
-
-}
       if (assignError) {
         console.error("assign_random_tickets error:", assignError.message);
       }
@@ -1508,53 +1473,37 @@ https://rifa-backend-production-4009.up.railway.app/rifa/${order.rifa_id}
       if (messageError) {
         console.error("log_ticket_message error:", messageError.message);
       }
-    }
-try {
+
+      try {
         await sendPurchaseWhatsApp(order.id);
       } catch (waError) {
         console.error("sendPurchaseWhatsApp error:", waError.message);
-
-        await supabase
-          .from("message_logs")
-          .update({
-            send_status: "failed",
-          })
-          .eq("order_id", order.id)
-          .eq("channel", "whatsapp");
       }
+
+    }
+
     if (status === "DECLINED" || status === "VOIDED" || status === "ERROR") {
-      const { error: orderFailError } = await supabase
+
+      await supabase
         .from("orders")
         .update({
           payment_status: "failed",
         })
         .eq("id", payment.order_id);
 
-      if (orderFailError) throw orderFailError;
-    }
-
-    if (
-      status !== "APPROVED" &&
-      status !== "DECLINED" &&
-      status !== "VOIDED" &&
-      status !== "ERROR"
-    ) {
-      const { error: orderPendingError } = await supabase
-        .from("orders")
-        .update({
-          payment_status: "pending",
-        })
-        .eq("id", payment.order_id);
-
-      if (orderPendingError) throw orderPendingError;
     }
 
     res.json({ ok: true });
+
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+
+    res.status(500).json({
+      ok: false,
+      error: e.message,
+    });
+
   }
 });
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
