@@ -429,7 +429,22 @@ app.get("/panel", async (req, res) => {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
+const totalRecaudadoGeneral = (rifas || []).reduce((acc, r) => {
+  const vendidos = Number(r.sold_tickets || 0);
+  const precio = Number(r.price_per_ticket || 0);
+  return acc + (vendidos * precio);
+}, 0);
 
+const totalComisionGeneral = await supabase
+  .from("orders")
+  .select("commission, payment_status");
+
+const comisionGeneral = (totalComisionGeneral.data || []).reduce((acc, o) => {
+  if (o.payment_status === "paid") {
+    return acc + Number(o.commission || 0);
+  }
+  return acc;
+}, 0);
     const base = getBaseUrl(req);
 
     const rows = (rifas || []).map((r) => {
