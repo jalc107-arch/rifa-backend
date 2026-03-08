@@ -1464,7 +1464,31 @@ app.post("/wompi/webhook", async (req, res) => {
         p_qty: order.qty,
         p_modality: order.rifas.modality,
       });
+await fetch(
+  "https://graph.facebook.com/v18.0/983823111489632/messages",
+  {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer TU_ACCESS_TOKEN",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to: payment.phone,
+      type: "text",
+      text: {
+        body: `🎟️ Pago confirmado
 
+Tus boletas han sido asignadas automáticamente.
+
+Puedes ver tu compra aquí:
+https://rifa-backend-production-4009.up.railway.app/rifa/${payment.rifa_id}
+
+¡Mucha suerte! 🍀`
+      }
+    })
+  }
+);
       if (assignError) {
         console.error("assign_random_tickets error:", assignError.message);
       }
