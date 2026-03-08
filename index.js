@@ -367,6 +367,166 @@ app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res)
     return res.status(500).send(e.message);
   }
 });
+app.get("/crear-rifa", async (req, res) => {
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crear rifa</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
+  <div style="max-width:760px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
+    <h1 style="margin-top:0;">Crear rifa</h1>
+
+    <form method="POST" action="/crear-rifa">
+      <div style="margin-bottom:12px;">
+        <label><b>Nombre de la rifa</b></label><br/>
+        <input type="text" name="title" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Premio</b></label><br/>
+        <input type="text" name="prize" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Descripción</b></label><br/>
+        <textarea name="description"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;min-height:100px;"></textarea>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Modalidad</b></label><br/>
+        <select name="modality"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;">
+          <option value="2">2 balotas</option>
+          <option value="3" selected>3 balotas</option>
+          <option value="4">4 balotas</option>
+          <option value="5">5 balotas</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Precio por boleta</b></label><br/>
+        <input type="number" name="price_per_ticket" min="1" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Máximo de boletas</b></label><br/>
+        <input type="number" name="max_tickets" min="1" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <label><b>Fecha del sorteo</b></label><br/>
+        <input type="datetime-local" name="draw_date" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <button type="submit"
+        style="background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;">
+        Crear rifa
+      </button>
+    </form>
+  </div>
+</body>
+</html>
+  `);
+});
+function slugify(text) {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ñ/g, "n")
+    .replace(/[^a-z0-9\\s-]/g, "")
+    .trim()
+    .replace(/\\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const ownerId = (process.env.DEFAULT_OWNER_ID || "").trim();
+    const title = String(req.body.title || "").trim();
+    const prize = String(req.body.prize || "").trim();
+    const description = String(req.body.description || "").trim();
+    const modality = Number(req.body.modality || 3);
+    const pricePerTicket = Number(req.body.price_per_ticket || 0);
+    const maxTickets = Number(req.body.max_tickets || 0);
+    const drawDateRaw = String(req.body.draw_date || "").trim();
+
+    if (!ownerId) {
+      return res.status(500).send("Falta DEFAULT_OWNER_ID en Railway");
+    }
+
+    if (!title || !prize || !drawDateRaw) {
+      return res.status(400).send("Faltan campos obligatorios");
+    }
+
+    if (![2, 3, 4, 5].includes(modality)) {
+      return res.status(400).send("Modalidad inválida");
+    }
+
+    if (!Number.isFinite(pricePerTicket) || pricePerTicket <= 0) {
+      return res.status(400).send("Precio inválido");
+    }
+
+    if (!Number.isInteger(maxTickets) || maxTickets <= 0) {
+      return res.status(400).send("Máximo de boletas inválido");
+    }
+
+    const drawDate = new Date(drawDateRaw);
+    if (Number.isNaN(drawDate.getTime())) {
+      return res.status(400).send("Fecha inválida");
+    }
+
+    let slug = slugify(title);
+    if (!slug) slug = `rifa-${Date.now()}`;
+
+    const { data: existingSlug } = await supabase
+      .from("rifas")
+      .select("id, slug")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (existingSlug) {
+      slug = `${slug}-${Date.now().toString().slice(-6)}`;
+    }
+
+    const { data: rifa, error } = await supabase
+      .from("rifas")
+      .insert({
+        owner_id: ownerId,
+        title,
+        prize,
+        description,
+        modality,
+        price_per_ticket: pricePerTicket,
+        max_tickets: maxTickets,
+        sold_tickets: 0,
+        available_tickets: maxTickets,
+        draw_date: drawDate.toISOString(),
+        status: "active",
+        slug,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const base = getBaseUrl(req);
+    return res.redirect(`${base}/rifa/${rifa.slug}`);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
 app.get("/rifa/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
