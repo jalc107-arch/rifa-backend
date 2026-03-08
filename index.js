@@ -884,6 +884,83 @@ app.get("/rifa/:slug", async (req, res) => {
     res.status(500).send(e.message);
   }
 });
+app.get("/r/:slug", async (req, res) => {
+  try {
+
+    const { slug } = req.params;
+
+    const { data: rifa } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("slug", slug)
+      .single();
+
+    if (!rifa) {
+      return res.status(404).send("Rifa no encontrada");
+    }
+
+    const base = getBaseUrl(req);
+
+    return res.redirect(`${base}/rifa-publica/${rifa.id}`);
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+app.get("/resultado/:slug", async (req, res) => {
+
+  const { slug } = req.params;
+
+  const { data: rifa } = await supabase
+    .from("rifas")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (!rifa) {
+    return res.send("Rifa no encontrada");
+  }
+
+  const { data: result } = await supabase
+    .from("raffle_results")
+    .select(`
+      *,
+      buyers:winner_buyer_id (
+        full_name,
+        phone
+      )
+    `)
+    .eq("rifa_id", rifa.id)
+    .order("created_at", { ascending:false })
+    .limit(1)
+    .maybeSingle();
+
+  res.send(`
+  <html>
+  <body style="font-family:Arial;background:#f6f7fb;padding:40px">
+
+  <div style="max-width:600px;margin:auto;background:white;padding:30px;border-radius:16px">
+
+  <h2>${rifa.title}</h2>
+
+  ${result ? `
+  <h3>Ganador</h3>
+
+  <p><b>Combinación:</b> ${result.winning_combination}</p>
+  <p><b>Nombre:</b> ${result.buyers?.full_name}</p>
+  <p><b>Teléfono:</b> ${result.buyers?.phone}</p>
+
+  ` : `
+  <h3>La rifa aún no tiene ganador</h3>
+  `}
+
+  </div>
+
+  </body>
+  </html>
+  `);
+
+});
 app.get("/rifa-publica/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
