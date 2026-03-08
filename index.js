@@ -336,8 +336,8 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
     const base = getBaseUrl(req);
     const redirectUrl = `${base}/rifas/${rifaId}/orden/${orderId}`;
 
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.send(`
+res.setHeader("Content-Type", "text/html; charset=utf-8");
+res.send(`
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -361,16 +361,18 @@ publicKeyPrefix: ${WOMPI_PUBLIC_KEY.slice(0, 20)}...
 integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
   </pre>
 
-  <script
-src="https://checkout.wompi.co/widget.js"
-data-render="button"
-data-public-key="${WOMPI_PUBLIC_KEY}"
-data-currency="${currency}"
-data-amount-in-cents="${amountInCents}"
-data-reference="${paymentReference}"
-data-signature-integrity="${signature}"
-data-redirect-url="${redirectUrl}">
-</script>
+  <form>
+    <script
+      src="https://checkout.wompi.co/widget.js"
+      data-render="button"
+      data-public-key="${WOMPI_PUBLIC_KEY}"
+      data-currency="${currency}"
+      data-amount-in-cents="${amountInCents}"
+      data-reference="${paymentReference}"
+      data-signature:integrity="${signature}"
+      data-redirect-url="${redirectUrl}">
+    </script>
+  </form>
 
   <div style="margin-top:18px;font-size:12px;opacity:.75;">
     * Al terminar el pago, Wompi redirige al detalle de la orden y el webhook confirma la compra.
@@ -381,7 +383,7 @@ data-redirect-url="${redirectUrl}">
   </div>
 </body>
 </html>
-    `);
+`);
   } catch (e) {
     res.status(500).send(e.message);
   }
