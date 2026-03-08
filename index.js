@@ -369,7 +369,7 @@ integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
       data-currency="${currency}"
       data-amount-in-cents="${amountInCents}"
       data-reference="${paymentReference}"
-      data-signature:integrity="${signature}"
+      data-signature-integrity="${signature}"
       data-redirect-url="${redirectUrl}">
     </script>
   </form>
