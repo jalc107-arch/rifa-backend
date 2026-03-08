@@ -654,27 +654,37 @@ const totalOrganizador = totalRecaudado - totalComision;
       </form>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px;">
-      <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
-        <div style="font-size:13px;color:#64748b;">Precio por boleta</div>
-        <div style="font-size:28px;font-weight:800;margin-top:8px;">$${Number(rifa.price_per_ticket || 0).toLocaleString("es-CO")}</div>
-      </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px;">
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+    <div style="font-size:13px;color:#64748b;">Precio por boleta</div>
+    <div style="font-size:28px;font-weight:800;margin-top:8px;">$${Number(rifa.price_per_ticket || 0).toLocaleString("es-CO")}</div>
+  </div>
 
-      <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
-        <div style="font-size:13px;color:#64748b;">Vendidas</div>
-        <div style="font-size:28px;font-weight:800;margin-top:8px;">${rifa.sold_tickets || 0}</div>
-      </div>
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+    <div style="font-size:13px;color:#64748b;">Vendidas</div>
+    <div style="font-size:28px;font-weight:800;margin-top:8px;">${rifa.sold_tickets || 0}</div>
+  </div>
 
-      <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
-        <div style="font-size:13px;color:#64748b;">Disponibles</div>
-        <div style="font-size:28px;font-weight:800;margin-top:8px;">${rifa.available_tickets || 0}</div>
-      </div>
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+    <div style="font-size:13px;color:#64748b;">Disponibles</div>
+    <div style="font-size:28px;font-weight:800;margin-top:8px;">${rifa.available_tickets || 0}</div>
+  </div>
 
-      <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
-        <div style="font-size:13px;color:#64748b;">Recaudado</div>
-        <div style="font-size:28px;font-weight:800;margin-top:8px;">$${Number(totalRecaudado).toLocaleString("es-CO")}</div>
-      </div>
-    </div>
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+    <div style="font-size:13px;color:#64748b;">Recaudado</div>
+    <div style="font-size:28px;font-weight:800;margin-top:8px;">$${Number(totalRecaudado).toLocaleString("es-CO")}</div>
+  </div>
+
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);border:1px solid #fde68a;">
+    <div style="font-size:13px;color:#92400e;">Tu comisión</div>
+    <div style="font-size:28px;font-weight:800;margin-top:8px;color:#b45309;">$${Number(totalComision).toLocaleString("es-CO")}</div>
+  </div>
+
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);border:1px solid #bbf7d0;">
+    <div style="font-size:13px;color:#166534;">Neto organizador</div>
+    <div style="font-size:28px;font-weight:800;margin-top:8px;color:#15803d;">$${Number(totalOrganizador).toLocaleString("es-CO")}</div>
+  </div>
+</div>
 
     ${lastResult ? `
     <div style="background:#ecfdf5;border:1px solid #86efac;border-radius:16px;padding:18px;margin-bottom:18px;">
