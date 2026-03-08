@@ -1,632 +1,294 @@
-// index.js
-import express from "express";
-import crypto from "crypto";
-import { createClient } from "@supabase/supabase-js";
+import express from "express"
+import crypto from "crypto"
+import { createClient } from "@supabase/supabase-js"
 
-const app = express();
-app.set("trust proxy", 1);
-app.use(express.json({ limit: "1mb" }));
+const app = express()
+app.use(express.json())
+app.set("trust proxy", 1)
 
-// =========================
-// CONFIG
-// =========================
-const PORT = Number(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000
 
-const SUPABASE_URL = (process.env.SUPABASE_URL || "").trim();
-const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+const SUPABASE_URL = process.env.SUPABASE_URL
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const WOMPI_PUBLIC_KEY = (process.env.WOMPI_PUBLIC_KEY || "").trim();
-const WOMPI_PRIVATE_KEY = (process.env.WOMPI_PRIVATE_KEY || "").trim();
-const WOMPI_INTEGRITY_SECRET = (process.env.WOMPI_INTEGRITY_SECRET || "").trim();
+const WOMPI_PUBLIC_KEY = process.env.WOMPI_PUBLIC_KEY
+const WOMPI_PRIVATE_KEY = process.env.WOMPI_PRIVATE_KEY
+const WOMPI_INTEGRITY_SECRET = process.env.WOMPI_INTEGRITY_SECRET
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.warn("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY");
+const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY
+)
+
+function getBaseUrl(req){
+  const proto = req.headers["x-forwarded-proto"] || req.protocol
+  const host = req.headers["x-forwarded-host"] || req.get("host")
+  return `${proto}://${host}`
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-// =========================
-// HELPERS
-// =========================
-function nowISO() {
-  return new Date().toISOString();
+function genReference(){
+  return "ord_" + crypto.randomBytes(6).toString("hex")
 }
 
-function genOrderReference() {
-  return `ord_${crypto.randomBytes(6).toString("hex")}`;
+function now(){
+  return new Date().toISOString()
 }
 
-function getBaseUrl(req) {
-  const proto = (req.headers["x-forwarded-proto"] || req.protocol || "https")
-    .toString()
-    .split(",")[0]
-    .trim();
+app.get("/", async(req,res)=>{
+  res.json({ok:true})
+})
 
-  const host = (req.headers["x-forwarded-host"] || req.get("host") || "")
-    .toString()
-    .split(",")[0]
-    .trim();
-
-  return `${proto}://${host}`;
-}
-
-function isValidQty(value) {
-  const n = Number(value);
-  return Number.isInteger(n) && n >= 1 && n <= 20;
-}
-
-function normalizeText(value, fallback = "") {
-  return (value ?? fallback).toString().trim();
-}
-
-function wompiEnvFromPublicKey(pub) {
-  const key = (pub || "").toLowerCase();
-  if (key.startsWith("pub_test_")) return "sandbox";
-  if (key.startsWith("pub_prod_")) return "production";
-  return "unknown";
-}
-
-// =========================
-// DEBUG
-// =========================
-app.get("/debug/wompi", async (req, res) => {
-  const env = wompiEnvFromPublicKey(WOMPI_PUBLIC_KEY);
+app.get("/debug/wompi",(req,res)=>{
 
   res.json({
-    ok: true,
-    env,
-    pub_prefix: WOMPI_PUBLIC_KEY ? WOMPI_PUBLIC_KEY.slice(0, 9) : "undefined",
-    prv_prefix: WOMPI_PRIVATE_KEY ? WOMPI_PRIVATE_KEY.slice(0, 9) : "undefined",
-    integrity_len: WOMPI_INTEGRITY_SECRET ? WOMPI_INTEGRITY_SECRET.length : 0,
-    missing: {
+    ok:true,
+    env: WOMPI_PUBLIC_KEY?.startsWith("pub_test_") ? "sandbox" : "production",
+    pub_prefix: WOMPI_PUBLIC_KEY?.slice(0,9),
+    prv_prefix: WOMPI_PRIVATE_KEY?.slice(0,9),
+    integrity_len: WOMPI_INTEGRITY_SECRET?.length,
+    missing:{
       SUPABASE_URL: !SUPABASE_URL,
       SUPABASE_SERVICE_ROLE_KEY: !SUPABASE_SERVICE_ROLE_KEY,
       WOMPI_PUBLIC_KEY: !WOMPI_PUBLIC_KEY,
       WOMPI_PRIVATE_KEY: !WOMPI_PRIVATE_KEY,
-      WOMPI_INTEGRITY_SECRET: !WOMPI_INTEGRITY_SECRET,
-    },
-  });
-});
-
-app.get("/health", async (req, res) => {
-  try {
-    const { error } = await supabase.from("rifas").select("id").limit(1);
-    if (error) throw error;
-    res.json({ ok: true, status: "healthy", at: nowISO() });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message || "Health failed" });
-  }
-});
-
-// =========================
-// CREAR DEMO EN SUPABASE
-// =========================
-app.get("/crear-demo", async (req, res) => {
-  try {
-    const ownerId = normalizeText(req.query.owner_id);
-    if (!ownerId) {
-      return res.status(400).json({
-        ok: false,
-        error: "Debes enviar owner_id de un profile existente",
-      });
+      WOMPI_INTEGRITY_SECRET: !WOMPI_INTEGRITY_SECRET
     }
+  })
+})
 
-    const title = normalizeText(req.query.title, "Rifa Demo Baloto");
-    const prize = normalizeText(req.query.prize, "Moto NKD");
-    const description = normalizeText(req.query.description, "Rifa de prueba");
-    const modality = Number(req.query.modality || 3);
-    const pricePerTicket = Number(req.query.price_per_ticket || 10000);
-    const maxTickets = Number(req.query.max_tickets || 100);
+app.get("/rifas/:rifaId/comprar", async(req,res)=>{
 
-    if (![2, 3, 4, 5].includes(modality)) {
-      return res.status(400).json({ ok: false, error: "modality debe ser 2, 3, 4 o 5" });
-    }
+  try{
 
-    if (!Number.isFinite(pricePerTicket) || pricePerTicket <= 0) {
-      return res.status(400).json({ ok: false, error: "price_per_ticket inválido" });
-    }
+    const { rifaId } = req.params
 
-    if (!Number.isInteger(maxTickets) || maxTickets <= 0) {
-      return res.status(400).json({ ok: false, error: "max_tickets inválido" });
-    }
+    const buyerName = req.query.buyer_name
+    const buyerPhone = req.query.buyer_phone
+    const qty = Number(req.query.qty || 1)
 
-    const drawDate = req.query.draw_date
-      ? new Date(req.query.draw_date.toString()).toISOString()
-      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    const { data, error } = await supabase
-      .from("rifas")
-      .insert({
-        owner_id: ownerId,
-        title,
-        prize,
-        description,
-        modality,
-        price_per_ticket: pricePerTicket,
-        max_tickets: maxTickets,
-        sold_tickets: 0,
-        available_tickets: maxTickets,
-        draw_date: drawDate,
-        status: "active",
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    const base = getBaseUrl(req);
-
-    res.json({
-      ok: true,
-      rifa: data,
-      links: {
-        ver: `${base}/rifas/${data.id}`,
-        comprar: `${base}/rifas/${data.id}/comprar`,
-      },
-    });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message || "Error creando demo" });
-  }
-});
-
-// =========================
-// VER RIFA
-// =========================
-app.get("/rifas/:rifaId", async (req, res) => {
-  try {
-    const { rifaId } = req.params;
-
-    const { data, error } = await supabase
-      .from("rifa_publica_detalle")
-      .select("*")
-      .eq("id", rifaId)
-      .single();
-
-    if (error) {
-      if (error.code === "PGRST116") {
-        return res.status(404).json({ ok: false, error: "Rifa no existe" });
-      }
-      throw error;
-    }
-
-    res.json({ ok: true, rifa: data });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message || "Error consultando rifa" });
-  }
-});
-
-// =========================
-// CREAR ORDEN + BUYER EN SUPABASE
-// =========================
-app.get("/rifas/:rifaId/comprar", async (req, res) => {
-  try {
-    const { rifaId } = req.params;
-
-    if (!isValidQty(req.query.qty || 1)) {
-      return res.status(400).json({ ok: false, error: "qty inválido. Usa enteros entre 1 y 20" });
-    }
-
-    const qty = Number(req.query.qty || 1);
-    const buyerName = normalizeText(req.query.buyer_name);
-    const buyerPhone = normalizeText(req.query.buyer_phone);
-    const buyerEmail = normalizeText(req.query.buyer_email);
-
-    if (!buyerName || !buyerPhone) {
-      return res.status(400).json({
-        ok: false,
-        error: "Debes enviar buyer_name y buyer_phone",
-      });
-    }
-
-    const { data: rifa, error: rifaError } = await supabase
+    const { data: rifa } = await supabase
       .from("rifas")
       .select("*")
       .eq("id", rifaId)
-      .single();
+      .single()
 
-    if (rifaError) {
-      if (rifaError.code === "PGRST116") {
-        return res.status(404).json({ ok: false, error: "Rifa no existe" });
-      }
-      throw rifaError;
+    if(!rifa){
+      return res.status(404).json({ok:false,error:"Rifa no existe"})
     }
 
-    if (rifa.status !== "active") {
-      return res.status(400).json({ ok: false, error: "La rifa no está activa" });
-    }
+    const total = qty * rifa.price_per_ticket
 
-    if (Number(rifa.available_tickets) < qty) {
-      return res.status(400).json({ ok: false, error: "No hay suficientes boletas disponibles" });
-    }
+    let buyer
 
-    const pricePerTicket = Number(rifa.price_per_ticket);
-    const subtotal = qty * pricePerTicket;
-    const totalPaid = subtotal;
-
-    let buyer = null;
-
-    const { data: existingBuyer, error: buyerLookupError } = await supabase
+    const { data: existingBuyer } = await supabase
       .from("buyers")
       .select("*")
       .eq("phone", buyerPhone)
-      .limit(1)
-      .maybeSingle();
+      .maybeSingle()
 
-    if (buyerLookupError) throw buyerLookupError;
+    if(existingBuyer){
+      buyer = existingBuyer
+    }else{
 
-    if (existingBuyer) {
-      buyer = existingBuyer;
-    } else {
-      const { data: newBuyer, error: newBuyerError } = await supabase
+      const { data: newBuyer } = await supabase
         .from("buyers")
         .insert({
           full_name: buyerName,
-          phone: buyerPhone,
-          email: buyerEmail || null,
+          phone: buyerPhone
         })
         .select()
-        .single();
+        .single()
 
-      if (newBuyerError) throw newBuyerError;
-      buyer = newBuyer;
+      buyer = newBuyer
     }
 
-    const orderReference = genOrderReference();
+    const reference = genReference()
 
-    const { data: order, error: orderError } = await supabase
+    const { data: order } = await supabase
       .from("orders")
       .insert({
-        id: crypto.randomUUID(),
         rifa_id: rifaId,
         buyer_id: buyer.id,
         qty,
-        subtotal,
-        total_paid: totalPaid,
-        payment_status: "created",
-        paid_at: null,
+        subtotal: total,
+        total_paid: total,
+        payment_status:"created"
       })
       .select()
-      .single();
+      .single()
 
-    if (orderError) throw orderError;
-
-    const { error: paymentError } = await supabase
+    await supabase
       .from("payments")
       .insert({
         order_id: order.id,
-        provider: "wompi",
-        external_reference: orderReference,
-        amount: totalPaid,
-        status: "CREATED",
-      });
+        provider:"wompi",
+        external_reference: reference,
+        amount: total,
+        status:"CREATED"
+      })
 
-    if (paymentError) throw paymentError;
-
-    const base = getBaseUrl(req);
+    const base = getBaseUrl(req)
 
     res.json({
-      ok: true,
-      rifa: {
+      ok:true,
+      rifa:{
         id: rifa.id,
-        title: rifa.title,
-        modality: rifa.modality,
-        price_per_ticket: rifa.price_per_ticket,
+        title: rifa.title
       },
-      buyer: {
-        id: buyer.id,
-        full_name: buyer.full_name,
-        phone: buyer.phone,
-      },
-      order: {
+      buyer,
+      order:{
         id: order.id,
-        reference: orderReference,
+        reference,
         qty,
-        total_pagar: totalPaid,
-        payment_status: order.payment_status,
+        total
       },
-      links: {
-        pagar: `${base}/rifas/${rifaId}/orden/${order.id}/pagar?reference=${encodeURIComponent(orderReference)}`,
-        ver: `${base}/rifas/${rifaId}/orden/${order.id}`,
-      },
-    });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message || "Error creando compra" });
-  }
-});
-
-// =========================
-// VER ORDEN
-// =========================
-app.get("/rifas/:rifaId/orden/:orderId", async (req, res) => {
-  try {
-    const { rifaId, orderId } = req.params;
-
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select(`
-        *,
-        buyers (*),
-        rifas (*)
-      `)
-      .eq("id", orderId)
-      .eq("rifa_id", rifaId)
-      .single();
-
-    if (orderError) {
-      if (orderError.code === "PGRST116") {
-        return res.status(404).json({ ok: false, error: "Orden no existe" });
+      links:{
+        pagar:`${base}/rifas/${rifaId}/orden/${order.id}/pagar?reference=${reference}`
       }
-      throw orderError;
-    }
+    })
 
-    const { data: tickets, error: ticketsError } = await supabase
-      .from("tickets")
-      .select("*")
-      .eq("order_id", orderId);
+  }catch(e){
 
-    if (ticketsError) throw ticketsError;
+    res.status(500).json({ok:false,error:e.message})
 
-    const { data: messages, error: messagesError } = await supabase
-      .from("message_logs")
-      .select("*")
-      .eq("order_id", orderId);
-
-    if (messagesError) throw messagesError;
-
-    res.json({
-      ok: true,
-      order,
-      tickets: tickets || [],
-      message_logs: messages || [],
-    });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message || "Error consultando orden" });
   }
-});
 
-// =========================
-// PAGAR CON WOMPI
-// =========================
-app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
-  try {
-    const { rifaId, orderId } = req.params;
-    const reference = normalizeText(req.query.reference);
+})
 
-    if (!WOMPI_PUBLIC_KEY || !WOMPI_INTEGRITY_SECRET) {
-      return res.status(500).send("Faltan WOMPI_PUBLIC_KEY o WOMPI_INTEGRITY_SECRET");
-    }
+app.get("/rifas/:rifaId/orden/:orderId/pagar", async(req,res)=>{
 
-    const { data: order, error: orderError } = await supabase
+  try{
+
+    const { rifaId, orderId } = req.params
+    const reference = req.query.reference
+
+    const { data: order } = await supabase
       .from("orders")
       .select(`
-        *,
-        rifas (*),
-        buyers (*)
+      *,
+      rifas(*),
+      buyers(*)
       `)
-      .eq("id", orderId)
-      .eq("rifa_id", rifaId)
-      .single();
+      .eq("id",orderId)
+      .single()
 
-    if (orderError) {
-      if (orderError.code === "PGRST116") return res.status(404).send("Orden no existe");
-      throw orderError;
-    }
-
-    const { data: payment, error: paymentError } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("order_id", orderId)
-      .eq("provider", "wompi")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (paymentError) throw paymentError;
-
-    const paymentReference = reference || payment.external_reference;
-    const currency = "COP";
-    const amountInCents = Math.round(Number(order.total_paid) * 100).toString();
+    const currency = "COP"
+    const amountInCents = String(order.total_paid * 100)
 
     const signature = crypto
       .createHash("sha256")
-      .update(`${paymentReference}${amountInCents}${currency}${WOMPI_INTEGRITY_SECRET}`)
-      .digest("hex");
+      .update(reference + amountInCents + currency + WOMPI_INTEGRITY_SECRET)
+      .digest("hex")
 
-    console.log("WOMPI DEBUG", {
-      paymentReference,
+    console.log("WOMPI DEBUG",{
+      reference,
       amountInCents,
       currency,
-      integritySecretLength: WOMPI_INTEGRITY_SECRET.length,
-      publicKeyPrefix: WOMPI_PUBLIC_KEY.slice(0, 9),
-      signature,
-      orderTotalPaid: order.total_paid,
-      orderId: order.id,
-      paymentId: payment.id,
-      externalReferenceFromDb: payment.external_reference,
-    });
+      signature
+    })
 
-    const base = getBaseUrl(req);
-    const redirectUrl = `${base}/rifas/${rifaId}/orden/${orderId}`;
+    const base = getBaseUrl(req)
+    const redirectUrl = `${base}/rifas/${rifaId}/orden/${orderId}`
 
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(`
-<!doctype html>
-<html lang="es">
+
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pagar con Wompi</title>
+<meta charset="utf-8">
+<title>Pagar con Wompi</title>
 </head>
-<body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#f5f7fb;margin:0;padding:24px;">
-  <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);padding:20px;">
-    <h2 style="margin-top:0;">Pagar con Wompi</h2>
-    <div style="opacity:.85;margin-bottom:8px;">Rifa: <b>${order.rifas.title}</b></div>
-    <div style="opacity:.85;margin-bottom:8px;">Comprador: <b>${order.buyers.full_name}</b></div>
-    <div style="opacity:.85;margin-bottom:8px;">Orden: <b>${orderId}</b></div>
-    <div style="opacity:.85;margin-bottom:16px;">Total: <b>$${Number(order.total_paid).toLocaleString("es-CO")} COP</b></div>
 
-    <pre style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:12px;overflow:auto;white-space:pre-wrap;margin-bottom:16px;">
-paymentReference: ${paymentReference}
+<body style="font-family:Arial;padding:30px;background:#f5f7fb">
+
+<h2>Pagar con Wompi</h2>
+
+<p>Rifa: ${order.rifas.title}</p>
+<p>Comprador: ${order.buyers.full_name}</p>
+<p>Total: $${order.total_paid}</p>
+
+<pre>
+
+reference: ${reference}
 amountInCents: ${amountInCents}
-currency: ${currency}
 signature: ${signature}
-publicKeyPrefix: ${WOMPI_PUBLIC_KEY.slice(0, 20)}...
-integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
-    </pre>
 
-    <script
-      src="https://checkout.wompi.co/widget.js"
-      data-render="button"
-      data-public-key="${WOMPI_PUBLIC_KEY}"
-      data-currency="${currency}"
-      data-amount-in-cents="${amountInCents}"
-      data-reference="${paymentReference}"
-      data-signature-integrity="${signature}"
-      data-redirect-url="${redirectUrl}">
-    </script>
+</pre>
 
-    <div style="margin-top:18px;font-size:12px;opacity:.75;">
-      * Al terminar el pago, Wompi redirige al detalle de la orden y el webhook confirma la compra.
-    </div>
+<script src="https://checkout.wompi.co/widget.js"></script>
 
-    <div style="margin-top:14px;">
-      <a href="${redirectUrl}" style="text-decoration:none;color:#1a7f37;font-weight:700;">← Ver orden</a>
-    </div>
-  </div>
+<button
+class="wompi-button"
+data-public-key="${WOMPI_PUBLIC_KEY}"
+data-currency="${currency}"
+data-amount-in-cents="${amountInCents}"
+data-reference="${reference}"
+data-signature-integrity="${signature}"
+data-redirect-url="${redirectUrl}"
+>
+
+Pagar con Wompi
+
+</button>
+
 </body>
 </html>
-    `);
-  } catch (e) {
-    res.status(500).send(e.message || "Error generando checkout");
+
+`)
+
+  }catch(e){
+
+    res.status(500).send(e.message)
+
   }
-});
 
-// =========================
-// WEBHOOK WOMPI
-// =========================
-app.post("/wompi/webhook", async (req, res) => {
-  try {
-    const body = req.body;
-    const tx = body?.data?.transaction;
+})
 
-    if (!tx?.reference) {
-      return res.status(400).json({ ok: false, error: "Sin reference" });
+app.post("/wompi/webhook", async(req,res)=>{
+
+  try{
+
+    const tx = req.body?.data?.transaction
+
+    if(!tx){
+      return res.json({ok:true})
     }
 
-    const reference = tx.reference;
-    const status = tx.status || null;
-    const wompiTxId = tx.id || null;
+    const reference = tx.reference
+    const status = tx.status
 
-    const { data: payment, error: paymentLookupError } = await supabase
+    const { data: payment } = await supabase
       .from("payments")
       .select("*")
-      .eq("external_reference", reference)
-      .eq("provider", "wompi")
-      .limit(1)
-      .maybeSingle();
+      .eq("external_reference",reference)
+      .single()
 
-    if (paymentLookupError) throw paymentLookupError;
-
-    if (!payment) {
-      return res.json({ ok: true, found: false });
+    if(!payment){
+      return res.json({ok:true})
     }
 
-    const { error: paymentUpdateError } = await supabase
-      .from("payments")
-      .update({
-        provider_payment_id: wompiTxId,
-        status: status || "UNKNOWN",
-        status_detail: tx?.status_message || null,
-        raw_response: body,
-        updated_at: nowISO(),
-      })
-      .eq("id", payment.id);
+    if(status==="APPROVED"){
 
-    if (paymentUpdateError) throw paymentUpdateError;
-
-    const { data: order, error: orderLookupError } = await supabase
-      .from("orders")
-      .select(`
-        *,
-        rifas (*)
-      `)
-      .eq("id", payment.order_id)
-      .single();
-
-    if (orderLookupError) throw orderLookupError;
-
-    if (status === "APPROVED") {
-      const { error: orderUpdateError } = await supabase
+      await supabase
         .from("orders")
         .update({
-          payment_status: "paid",
-          paid_at: nowISO(),
+          payment_status:"paid",
+          paid_at:now()
         })
-        .eq("id", order.id);
+        .eq("id",payment.order_id)
 
-      if (orderUpdateError) throw orderUpdateError;
-
-      const { error: assignError } = await supabase.rpc("assign_random_tickets", {
-        p_rifa_id: order.rifa_id,
-        p_order_id: order.id,
-        p_qty: order.qty,
-        p_modality: order.rifas.modality,
-      });
-
-      if (assignError) {
-        console.error("Error asignando tickets:", assignError.message);
-      }
-
-      const { error: messageError } = await supabase.rpc("log_ticket_message", {
-        p_order_id: order.id,
-        p_channel: "whatsapp",
-      });
-
-      if (messageError) {
-        console.error("Error registrando message_logs:", messageError.message);
-      }
-    } else if (status === "DECLINED" || status === "VOIDED" || status === "ERROR") {
-      const { error: orderUpdateError } = await supabase
-        .from("orders")
-        .update({
-          payment_status: "failed",
-        })
-        .eq("id", order.id);
-
-      if (orderUpdateError) throw orderUpdateError;
-    } else {
-      const { error: orderUpdateError } = await supabase
-        .from("orders")
-        .update({
-          payment_status: "pending",
-        })
-        .eq("id", order.id);
-
-      if (orderUpdateError) throw orderUpdateError;
     }
 
-    return res.json({ ok: true, found: true, status });
-  } catch (e) {
-    return res.status(500).json({ ok: false, error: e.message || "Webhook error" });
-  }
-});
+    res.json({ok:true})
 
-// =========================
-// HOME
-// =========================
-app.get("/", async (req, res) => {
-  try {
-    const { data, error } = await supabase.from("rifa_publica").select("*").limit(10);
-    if (error) throw error;
-    res.json({ ok: true, rifas: data });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message || "Error en home" });
-  }
-});
+  }catch(e){
 
-// =========================
-// START
-// =========================
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Servidor corriendo en puerto", PORT);
-});
+    res.status(500).json({ok:false})
+
+  }
+
+})
+
+app.listen(PORT,"0.0.0.0",()=>{
+  console.log("Servidor corriendo en puerto",PORT)
+})
