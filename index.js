@@ -516,6 +516,43 @@ app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res)
     return res.status(500).send(e.message);
   }
 });
+app.post("/registro", express.urlencoded({ extended: true }), async (req, res) => {
+
+  const { email, password, name } = req.body;
+
+  const { data, error } = await supabase
+    .from("users")
+    .insert({
+      email,
+      password,
+      name
+    })
+    .select()
+    .single();
+
+  if (error) {
+    return res.send("Error creando usuario");
+  }
+
+  res.send("Usuario creado");
+});
+app.post("/login", express.urlencoded({ extended: true }), async (req, res) => {
+
+  const { email, password } = req.body;
+
+  const { data } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .eq("password", password)
+    .single();
+
+  if (!data) {
+    return res.send("Usuario o contraseña incorrectos");
+  }
+
+  res.redirect("/panel");
+});
 app.get("/panel", async (req, res) => {
   try {
     const { data: rifas, error } = await supabase
