@@ -493,7 +493,28 @@ const comisionGeneral = (totalComisionGeneral.data || []).reduce((acc, o) => {
         + Crear rifa
       </a>
     </div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:18px;">
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+    <div style="font-size:13px;color:#64748b;">Recaudado total</div>
+    <div style="font-size:30px;font-weight:800;margin-top:8px;">
+      $${Number(totalRecaudadoGeneral).toLocaleString("es-CO")}
+    </div>
+  </div>
 
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);border:1px solid #fde68a;">
+    <div style="font-size:13px;color:#92400e;">Tus comisiones</div>
+    <div style="font-size:30px;font-weight:800;margin-top:8px;color:#b45309;">
+      $${Number(comisionGeneral).toLocaleString("es-CO")}
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.06);">
+    <div style="font-size:13px;color:#64748b;">Rifas creadas</div>
+    <div style="font-size:30px;font-weight:800;margin-top:8px;">
+      ${(rifas || []).length}
+    </div>
+  </div>
+</div>
     <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
       <table style="width:100%;border-collapse:collapse;min-width:1000px;">
         <thead style="background:#0f172a;color:white;">
