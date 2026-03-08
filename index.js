@@ -205,6 +205,104 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
     return res.status(500).send(e.message);
   }
 });
+app.get("/rifa-publica/:rifaId", async (req, res) => {
+  try {
+    const { rifaId } = req.params;
+
+    const { data: rifa, error } = await supabase
+      .from("rifa_publica_detalle")
+      .select("*")
+      .eq("id", rifaId)
+      .single();
+
+    if (error || !rifa) {
+      return res.status(404).send("Rifa no existe");
+    }
+
+    const base = getBaseUrl(req);
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${rifa.title}</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
+  <div style="max-width:760px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
+    
+    <h1 style="margin-top:0;">${rifa.title}</h1>
+    <p style="font-size:18px;margin:8px 0;"><b>Premio:</b> ${rifa.prize || "Premio no definido"}</p>
+    <p style="margin:8px 0;"><b>Descripción:</b> ${rifa.description || "Sin descripción"}</p>
+    <p style="margin:8px 0;"><b>Valor por boleta:</b> $${Number(rifa.price_per_ticket).toLocaleString("es-CO")} COP</p>
+    <p style="margin:8px 0;"><b>Boletas vendidas:</b> ${rifa.sold_tickets}</p>
+    <p style="margin:8px 0;"><b>Boletas disponibles:</b> ${rifa.available_tickets}</p>
+    <p style="margin:8px 0;"><b>Estado:</b> ${rifa.status}</p>
+
+    <div style="margin-top:18px;padding:14px;background:#eef6ff;border-radius:10px;font-size:14px;">
+      Los números <b>no se eligen manualmente</b>. Se asignan <b>automáticamente después del pago</b>.
+    </div>
+
+    <form method="GET" action="${base}/comprar-directo/${rifa.id}" style="margin-top:24px;">
+      <div style="margin-bottom:12px;">
+        <label><b>Nombre completo</b></label><br/>
+        <input
+          type="text"
+          name="buyer_name"
+          required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;"
+        />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Teléfono</b></label><br/>
+        <input
+          type="text"
+          name="buyer_phone"
+          required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;"
+        />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Correo electrónico</b> (opcional)</label><br/>
+        <input
+          type="email"
+          name="buyer_email"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;"
+        />
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <label><b>Cantidad de boletas</b></label><br/>
+        <input
+          type="number"
+          name="qty"
+          min="1"
+          max="${rifa.available_tickets || 1}"
+          value="1"
+          required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;"
+        />
+      </div>
+
+      <button
+        type="submit"
+        style="background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;"
+      >
+        Comprar ahora
+      </button>
+    </form>
+  </div>
+</body>
+</html>
+    `);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
 app.get("/rifas/:rifaId/comprar", async (req, res) => {
   try {
     const { rifaId } = req.params;
