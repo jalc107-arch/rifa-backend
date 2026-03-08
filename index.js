@@ -750,6 +750,63 @@ app.get("/panel/rifa/:rifaId", async (req, res) => {
     res.status(500).send(e.message);
   }
 });
+app.post("/panel/rifa/:rifaId/sorteo", express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { rifaId } = req.params;
+    const winningCombination = String(req.body.winning_combination || "").trim();
+
+    if (!winningCombination) {
+      return res.status(400).send("Falta la combinación ganadora");
+    }
+
+    const { data: rifa, error: rifaError } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("id", rifaId)
+      .single();
+
+    if (rifaError || !rifa) {
+      return res.status(404).send("Rifa no encontrada");
+    }
+
+    const { data: winnerTicket, error: ticketError } = await supabase
+      .from("tickets")
+      .select("*")
+      .eq("rifa_id", rifaId)
+      .eq("combination", winningCombination)
+      .maybeSingle();
+
+    if (ticketError) throw ticketError;
+
+    let winnerBuyerId = null;
+    if (winnerTicket?.buyer_id) {
+      winnerBuyerId = winnerTicket.buyer_id;
+    } else if (winnerTicket?.order_id) {
+      const { data: orderRow } = await supabase
+        .from("orders")
+        .select("buyer_id")
+        .eq("id", winnerTicket.order_id)
+        .maybeSingle();
+
+      winnerBuyerId = orderRow?.buyer_id || null;
+    }
+
+    const { error: insertError } = await supabase
+      .from("raffle_results")
+      .insert({
+        rifa_id: rifaId,
+        winning_combination: winningCombination,
+        winner_ticket_id: winnerTicket?.id || null,
+        winner_buyer_id: winnerBuyerId || null,
+      });
+
+    if (insertError) throw insertError;
+
+    return res.redirect(`/panel/rifa/${rifaId}?resultado=${encodeURIComponent(winningCombination)}`);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
 app.get("/rifa/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
