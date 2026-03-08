@@ -361,19 +361,16 @@ publicKeyPrefix: ${WOMPI_PUBLIC_KEY.slice(0, 20)}...
 integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
   </pre>
 
-  <script src="https://checkout.wompi.co/widget.js"></script>
-
-  <button
-    data-render="button"
-    data-public-key="${WOMPI_PUBLIC_KEY}"
-    data-currency="${currency}"
-    data-amount-in-cents="${amountInCents}"
-    data-reference="${paymentReference}"
-    data-signature-integrity="${signature}"
-    data-redirect-url="${redirectUrl}"
-  >
-    Pagar con Wompi
-  </button>
+  <script
+src="https://checkout.wompi.co/widget.js"
+data-render="button"
+data-public-key="${WOMPI_PUBLIC_KEY}"
+data-currency="${currency}"
+data-amount-in-cents="${amountInCents}"
+data-reference="${paymentReference}"
+data-signature-integrity="${signature}"
+data-redirect-url="${redirectUrl}">
+</script>
 
   <div style="margin-top:18px;font-size:12px;opacity:.75;">
     * Al terminar el pago, Wompi redirige al detalle de la orden y el webhook confirma la compra.
