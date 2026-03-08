@@ -616,7 +616,19 @@ app.get("/panel/rifa/:rifaId", async (req, res) => {
     if (rifaError || !rifa) {
       return res.status(404).send("Rifa no encontrada");
     }
-
+const { data: lastResult } = await supabase
+  .from("raffle_results")
+  .select(`
+    *,
+    buyers:winner_buyer_id (
+      full_name,
+      phone
+    )
+  `)
+  .eq("rifa_id", rifaId)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .maybeSingle();
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
       .select(`
