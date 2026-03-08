@@ -1444,14 +1444,28 @@ Guarda este mensaje como comprobante. ¡Suerte!`;
 
   const waResp = await sendWhatsAppText(orderFull.buyers?.phone, mensaje);
 
-  await supabase
+  const { data: lastLog, error: lastLogError } = await supabase
   .from("message_logs")
-  .update({
-    send_status: "sent",
-    provider_message_id: waResp?.messages?.[0]?.id || null,
-  })
+  .select("id")
   .eq("order_id", orderId)
-  .eq("channel", "whatsapp");
+  .eq("channel", "whatsapp")
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .maybeSingle();
+
+if (lastLogError) throw lastLogError;
+
+if (lastLog?.id) {
+  const { error: updateLogError } = await supabase
+    .from("message_logs")
+    .update({
+      send_status: "sent",
+      provider_message_id: waResp?.messages?.[0]?.id || null,
+    })
+    .eq("id", lastLog.id);
+
+  if (updateLogError) throw updateLogError;
+}
 
   return waResp;
 }
