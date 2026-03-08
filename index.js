@@ -912,15 +912,35 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
               </div>
             </div>
 
-            <div style="margin-bottom:18px;">
-              <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;">
-                <span>Progreso de ventas</span>
-                <span>${porcentaje}% vendido</span>
-              </div>
-              <div style="width:100%;height:14px;background:#e2e8f0;border-radius:999px;overflow:hidden;">
-                <div style="width:${porcentaje}%;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);"></div>
-              </div>
-            </div>
+            <div style="margin-bottom:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+    <div style="font-size:15px;font-weight:700;">Progreso de ventas</div>
+    <div style="font-size:14px;color:#475569;"><b>${porcentaje}%</b> vendido</div>
+  </div>
+
+  <div style="width:100%;height:16px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-bottom:12px;">
+    <div style="width:${porcentaje}%;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);transition:width .4s ease;"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:center;">
+    
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+      <div style="font-size:12px;color:#64748b;">Vendidas</div>
+      <div style="font-size:22px;font-weight:800;">${vendidos}</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+      <div style="font-size:12px;color:#64748b;">Disponibles</div>
+      <div style="font-size:22px;font-weight:800;">${disponibles}</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+      <div style="font-size:12px;color:#64748b;">Total</div>
+      <div style="font-size:22px;font-weight:800;">${maximos}</div>
+    </div>
+
+  </div>
+</div>
 
             <div style="padding:14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;color:#1e3a8a;font-size:14px;">
               Los números <b>no se eligen manualmente</b>. Se asignan <b>automáticamente después del pago aprobado</b>.
