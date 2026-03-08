@@ -336,8 +336,8 @@ app.get("/rifas/:rifaId/orden/:orderId/pagar", async (req, res) => {
     const base = getBaseUrl(req);
     const redirectUrl = `${base}/rifas/${rifaId}/orden/${orderId}`;
 
-res.setHeader("Content-Type", "text/html; charset=utf-8");
-res.send(`
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -361,18 +361,9 @@ publicKeyPrefix: ${WOMPI_PUBLIC_KEY.slice(0, 20)}...
 integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
   </pre>
 
-  <form>
-    <script
-      src="https://checkout.wompi.co/widget.js"
-      data-render="button"
-      data-public-key="${WOMPI_PUBLIC_KEY}"
-      data-currency="${currency}"
-      data-amount-in-cents="${amountInCents}"
-      data-reference="${paymentReference}"
-      data-signature-integrity="${signature}"
-      data-redirect-url="${redirectUrl}">
-    </script>
-  </form>
+  <button id="wompi-pay-button" style="background:#2f6df6;color:white;border:none;padding:12px 18px;border-radius:8px;cursor:pointer;font-size:16px;">
+    Paga con Wompi
+  </button>
 
   <div style="margin-top:18px;font-size:12px;opacity:.75;">
     * Al terminar el pago, Wompi redirige al detalle de la orden y el webhook confirma la compra.
@@ -381,9 +372,27 @@ integritySecretLength: ${WOMPI_INTEGRITY_SECRET.length}
   <div style="margin-top:14px;">
     <a href="${redirectUrl}" style="text-decoration:none;color:#1a7f37;font-weight:700;">← Ver orden</a>
   </div>
+
+  <script src="https://checkout.wompi.co/widget.js"></script>
+  <script>
+    const checkout = new WidgetCheckout({
+      currency: "${currency}",
+      amountInCents: ${amountInCents},
+      reference: "${paymentReference}",
+      publicKey: "${WOMPI_PUBLIC_KEY}",
+      signature: { integrity: "${signature}" },
+      redirectUrl: "${redirectUrl}"
+    });
+
+    document.getElementById("wompi-pay-button").addEventListener("click", function () {
+      checkout.open(function (result) {
+        console.log("WOMPI RESULT", result);
+      });
+    });
+  </script>
 </body>
 </html>
-`);
+    `);
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -480,7 +489,12 @@ app.post("/wompi/webhook", async (req, res) => {
       if (orderFailError) throw orderFailError;
     }
 
-    if (status !== "APPROVED" && status !== "DECLINED" && status !== "VOIDED" && status !== "ERROR") {
+    if (
+      status !== "APPROVED" &&
+      status !== "DECLINED" &&
+      status !== "VOIDED" &&
+      status !== "ERROR"
+    ) {
       const { error: orderPendingError } = await supabase
         .from("orders")
         .update({
