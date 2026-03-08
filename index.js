@@ -1459,36 +1459,43 @@ app.post("/wompi/webhook", async (req, res) => {
       if (orderUpdateError) throw orderUpdateError;
 
       const { error: assignError } = await supabase.rpc("assign_random_tickets", {
-        p_rifa_id: order.rifa_id,
-        p_order_id: order.id,
-        p_qty: order.qty,
-        p_modality: order.rifas.modality,
-      });
-await fetch(
-  "https://graph.facebook.com/v18.0/983823111489632/messages",
-  {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer EAAW7QWOtsn4BQ1F1Uvw2imttt8vFQlEUYfZBwOKUmnZBlmFhyc4EKxKyAnjT2yGCgBQOlfc9iVNBCni9GZCjwwBqvx0StDJtP3WCPcGGWiRFoWAgT4wSNlJIWp56ZBV3ESZBWS1l6ZCsCdYIkZALkmaYob2Hnzh9GcZCZAKvWBIyhwrgaV5Kn2FpBSGEjTp5vs0vgXqk1SYXcZCXKFa2UEgiYwyNemhymYpG96boYNJqCbv3vaiPItpXCTlQlGZBXaU0EAghpVKj39M6AXzBBnJlP30",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: payment.phone,
-      type: "text",
-      text: {
-        body: `🎟️ Pago confirmado
+  p_rifa_id: order.rifa_id,
+  p_order_id: order.id,
+  p_qty: order.qty,
+  p_modality: order.rifas.modality,
+});
+
+if (assignError) {
+  console.error("assign_random_tickets error:", assignError.message);
+} else {
+
+  await fetch(
+    "https://graph.facebook.com/v18.0/983823111489632/messages",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer TU_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: payment.phone,
+        type: "text",
+        text: {
+          body: `🎟️ Pago confirmado
 
 Tus boletas han sido asignadas automáticamente.
 
 Puedes ver tu compra aquí:
-https://rifa-backend-production-4009.up.railway.app/rifa/${payment.rifa_id}
+https://rifa-backend-production-4009.up.railway.app/rifa/${order.rifa_id}
 
 ¡Mucha suerte! 🍀`
-      }
-    })
-  }
-);
+        }
+      })
+    }
+  );
+
+}
       if (assignError) {
         console.error("assign_random_tickets error:", assignError.message);
       }
