@@ -543,7 +543,9 @@ app.get("/panel", async (req, res) => {
           <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.available_tickets || 0}</td>
           <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.status || ""}</td>
           <td style="padding:12px;border-bottom:1px solid #e2e8f0;">
-            <a href="${linkPublico}" target="_blank" style="color:#2563eb;text-decoration:none;font-weight:700;">Abrir</a>
+            <a href="${base}/panel/rifa/${r.id}" style="color:#2563eb;text-decoration:none;font-weight:700;">Ver panel</a>
+<br/>
+<a href="${linkPublico}" target="_blank" style="color:#16a34a;text-decoration:none;font-weight:700;">Abrir rifa</a>
           </td>
         </tr>
       `;
