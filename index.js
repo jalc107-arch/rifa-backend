@@ -1824,6 +1824,49 @@ app.post("/wompi/webhook", async (req, res) => {
 
   }
 });
+
+app.get("/rifas", async (req, res) => {
+  try {
+
+    const { data: rifas, error } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const cards = (rifas || []).map(r => `
+      <div style="background:#fff;border-radius:12px;padding:20px;
+      box-shadow:0 8px 20px rgba(0,0,0,.08);margin-bottom:20px;">
+        <h3>${r.title}</h3>
+        <p><b>Premio:</b> ${r.prize}</p>
+        <p><b>Precio:</b> $${r.price_per_ticket}</p>
+        <a href="/rifa/${r.slug}" 
+        style="background:#16a34a;color:white;padding:10px 16px;
+        border-radius:8px;text-decoration:none;">
+        Comprar boletas
+        </a>
+      </div>
+    `).join("");
+
+    res.send(`
+      <html>
+      <head>
+      <title>Rifas disponibles</title>
+      </head>
+      <body style="font-family:Arial;background:#f4f7fb;padding:40px">
+      <h1>Rifas disponibles</h1>
+      ${cards || "<p>No hay rifas activas</p>"}
+      </body>
+      </html>
+    `);
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
