@@ -765,7 +765,249 @@ const totalOrganizador = totalRecaudado - totalComision;
     res.status(500).send(e.message);
   }
 });
+app.get("/organizers/register", async (req, res) => {
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(`
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Registro de organizador</title>
+  </head>
+  <body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
+    <div style="max-width:520px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
+      <h1 style="margin-top:0;">Crear cuenta de organizador</h1>
 
+      <form method="POST" action="/organizers/register">
+        <div style="margin-bottom:12px;">
+          <label><b>Nombre completo</b></label><br/>
+          <input type="text" name="full_name" required
+            style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label><b>Correo</b></label><br/>
+          <input type="email" name="email" required
+            style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label><b>Teléfono</b></label><br/>
+          <input type="text" name="phone"
+            style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+        </div>
+
+        <div style="margin-bottom:18px;">
+          <label><b>Contraseña</b></label><br/>
+          <input type="password" name="password" required
+            style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+        </div>
+
+        <button type="submit"
+          style="background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;">
+          Crear cuenta
+        </button>
+      </form>
+
+      <div style="margin-top:14px;">
+        <a href="/organizers/login" style="color:#2563eb;text-decoration:none;font-weight:700;">Ya tengo cuenta</a>
+      </div>
+    </div>
+  </body>
+  </html>
+  `);
+});
+
+app.post("/organizers/register", express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const fullName = String(req.body.full_name || "").trim();
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const phone = String(req.body.phone || "").trim();
+    const password = String(req.body.password || "").trim();
+
+    if (!fullName || !email || !password) {
+      return res.status(400).send("Faltan campos obligatorios");
+    }
+
+    const { data: existingOrganizer } = await supabase
+      .from("organizers")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existingOrganizer) {
+      return res.status(400).send("Ya existe un organizador con ese correo");
+    }
+
+    const { data: organizer, error } = await supabase
+      .from("organizers")
+      .insert({
+        full_name: fullName,
+        email,
+        phone: phone || null,
+        password,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.redirect(`/organizers/login?registered=1&email=${encodeURIComponent(email)}`);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
+app.get("/organizers/login", async (req, res) => {
+  const email = String(req.query.email || "").trim();
+  const registered = req.query.registered === "1";
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(`
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ingreso organizador</title>
+  </head>
+  <body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
+    <div style="max-width:520px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
+      <h1 style="margin-top:0;">Ingreso de organizador</h1>
+
+      ${registered ? `
+        <div style="margin-bottom:16px;padding:12px;border-radius:10px;background:#ecfdf5;border:1px solid #86efac;color:#166534;">
+          Cuenta creada correctamente. Ahora inicia sesión.
+        </div>
+      ` : ""}
+
+      <form method="POST" action="/organizers/login">
+        <div style="margin-bottom:12px;">
+          <label><b>Correo</b></label><br/>
+          <input type="email" name="email" value="${email}" required
+            style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+        </div>
+
+        <div style="margin-bottom:18px;">
+          <label><b>Contraseña</b></label><br/>
+          <input type="password" name="password" required
+            style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+        </div>
+
+        <button type="submit"
+          style="background:#2563eb;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;">
+          Ingresar
+        </button>
+      </form>
+
+      <div style="margin-top:14px;">
+        <a href="/organizers/register" style="color:#16a34a;text-decoration:none;font-weight:700;">Crear cuenta</a>
+      </div>
+    </div>
+  </body>
+  </html>
+  `);
+});
+
+app.post("/organizers/login", express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const password = String(req.body.password || "").trim();
+
+    if (!email || !password) {
+      return res.status(400).send("Faltan credenciales");
+    }
+
+    const { data: organizer, error } = await supabase
+      .from("organizers")
+      .select("*")
+      .eq("email", email)
+      .eq("password", password)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!organizer) {
+      return res.status(401).send("Correo o contraseña incorrectos");
+    }
+
+    return res.redirect(`/organizers/${organizer.id}/panel`);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
+app.get("/organizers/:organizerId/panel", async (req, res) => {
+  try {
+    const { organizerId } = req.params;
+
+    const { data: organizer, error: organizerError } = await supabase
+      .from("organizers")
+      .select("*")
+      .eq("id", organizerId)
+      .single();
+
+    if (organizerError || !organizer) {
+      return res.status(404).send("Organizador no encontrado");
+    }
+
+    const { data: rifas, error: rifasError } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("owner_id", organizerId)
+      .order("created_at", { ascending: false });
+
+    if (rifasError) throw rifasError;
+
+    const rows = (rifas || []).map((r) => `
+      <tr>
+        <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.title || ""}</td>
+        <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.prize || ""}</td>
+        <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.sold_tickets || 0}</td>
+        <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.available_tickets || 0}</td>
+        <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:right;">$${Number(r.price_per_ticket || 0).toLocaleString("es-CO")}</td>
+      </tr>
+    `).join("");
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Panel del organizador</title>
+    </head>
+    <body style="margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#111;">
+      <div style="max-width:1100px;margin:30px auto;padding:16px;">
+        <h1 style="margin-top:0;">Panel de ${organizer.full_name}</h1>
+        <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
+
+        <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
+          <table style="width:100%;border-collapse:collapse;min-width:800px;">
+            <thead style="background:#0f172a;color:white;">
+              <tr>
+                <th style="padding:14px;text-align:left;">Rifa</th>
+                <th style="padding:14px;text-align:left;">Premio</th>
+                <th style="padding:14px;text-align:center;">Vendidas</th>
+                <th style="padding:14px;text-align:center;">Disponibles</th>
+                <th style="padding:14px;text-align:right;">Precio</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows || `<tr><td colspan="5" style="padding:18px;">Este organizador aún no tiene rifas.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </body>
+    </html>
+    `);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
 app.post("/panel/rifa/:rifaId/sorteo", express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { rifaId } = req.params;
