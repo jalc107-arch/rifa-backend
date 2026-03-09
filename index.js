@@ -984,6 +984,14 @@ app.get("/organizers/:organizerId/panel", async (req, res) => {
         <h1 style="margin-top:0;">Panel de ${organizer.full_name}</h1>
         <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
 
+<div style="margin-bottom:20px;">
+  <a href="/panel/rifa/nueva" 
+     style="background:#16a34a;color:white;padding:10px 18px;
+     text-decoration:none;border-radius:8px;font-weight:bold;">
+     + Crear nueva rifa
+  </a>
+</div>
+
         <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
           <table style="width:100%;border-collapse:collapse;min-width:800px;">
             <thead style="background:#0f172a;color:white;">
