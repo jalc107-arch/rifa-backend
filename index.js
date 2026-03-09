@@ -1866,6 +1866,9 @@ app.get("/rifas", async (req, res) => {
     res.status(500).send(e.message);
   }
 });
+app.get("/", (req, res) => {
+  res.redirect("/rifas");
+});
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
