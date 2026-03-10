@@ -2290,7 +2290,6 @@ app.post("/wompi/webhook", async (req, res) => {
 
 app.get("/rifas", async (req, res) => {
   try {
-
     const { data, error } = await supabase
       .from("rifas")
       .select("*")
@@ -2299,70 +2298,62 @@ app.get("/rifas", async (req, res) => {
 
     if (error) throw error;
 
-    const cards = (data || []).map(r => {
-
+    const cards = (data || []).map((r) => {
       const vendidos = Number(r.sold_tickets || 0);
       const maximos = Number(r.max_tickets || 0);
       const porcentaje = maximos > 0 ? Math.round((vendidos / maximos) * 100) : 0;
 
       return `
-      <a href="/rifa/${r.slug}" style="text-decoration:none;color:inherit;">
-        <div style="background:#fff;border-radius:18px;padding:16px;margin-bottom:16px;border:1px solid #e5e7eb;">
+        <a href="/rifa/${r.slug}" style="text-decoration:none;color:inherit;">
+          <div style="background:#fff;border-radius:18px;padding:16px;margin-bottom:16px;border:1px solid #e5e7eb;">
+            <div style="font-size:22px;font-weight:900;margin-bottom:6px;">
+              ${r.title}
+            </div>
 
-          <div style="font-size:22px;font-weight:900;margin-bottom:6px;">
-            ${r.title}
-          </div>
+            <div style="color:#6b7280;margin-bottom:10px;">
+              Premio: ${r.prize}
+            </div>
 
-          <div style="color:#6b7280;margin-bottom:10px;">
-            Premio: ${r.prize}
-          </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+              <div>Boleta</div>
+              <div style="font-weight:900;">
+                $${Number(r.price_per_ticket).toLocaleString("es-CO")}
+              </div>
+            </div>
 
-          <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-            <div>Boleta</div>
-            <div style="font-weight:900;">
-              $${Number(r.price_per_ticket).toLocaleString("es-CO")}
+            <div style="height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-bottom:8px;">
+              <div style="width:${porcentaje}%;height:100%;background:#22c55e;"></div>
+            </div>
+
+            <div style="font-size:14px;color:#6b7280;margin-bottom:12px;">
+              ${vendidos} vendidas de ${maximos}
+            </div>
+
+            <div style="background:#facc15;padding:12px;text-align:center;border-radius:12px;font-weight:900;">
+              Ver rifa
             </div>
           </div>
-
-          <div style="height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-bottom:8px;">
-            <div style="width:${porcentaje}%;height:100%;background:#22c55e;"></div>
-          </div>
-
-          <div style="font-size:14px;color:#6b7280;margin-bottom:12px;">
-            ${vendidos} vendidas de ${maximos}
-          </div>
-
-          <div style="background:#facc15;padding:12px;text-align:center;border-radius:12px;font-weight:900;">
-            Ver rifa
-          </div>
-
-        </div>
-      </a>
+        </a>
       `;
     }).join("");
 
     res.send(`
-    <html>
-    <head>
-      <title>Rifas activas</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
-
-    <body style="font-family:Arial;background:#f4f7fb;margin:0;padding:16px;">
-
-      <h1 style="margin-bottom:20px;">Rifas activas</h1>
-
-      ${cards || "<p>No hay rifas activas.</p>"}
-
-    </body>
-    </html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rifas activas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="font-family:Arial;background:#f4f7fb;margin:0;padding:16px;">
+  <h1 style="margin-bottom:20px;">Rifas activas</h1>
+  ${cards || "<p>No hay rifas activas.</p>"}
+</body>
+</html>
     `);
-
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
