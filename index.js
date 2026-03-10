@@ -1249,11 +1249,10 @@ if (String(req.session.organizerId) !== String(organizerId)) {
       return res.status(404).send("Organizador no encontrado");
     }
 
-    const { data: rifas, error: rifasError } = await supabase
-      .from("rifas")
-      .select("*")
-      .eq("owner_id", organizerId)
-      .order("created_at", { ascending: false });
+   const { data: rifas, error: rifasError } = await supabase
+  .from("rifas")
+  .select("*")
+  .order("created_at", { ascending: false });
 
     if (rifasError) throw rifasError;
 
