@@ -88,25 +88,34 @@ app.get("/", async (req, res) => {
     const cards = (rifas || []).map((r) => {
       const vendidos = Number(r.sold_tickets || 0);
       const maximos = Number(r.max_tickets || 0);
-      const porcentaje = maximos > 0 ? Math.min(100, Math.round((vendidos / maximos) * 100)) : 0;
-      const link = r.slug ? `/rifa/${r.slug}` : `/rifa-publica/${r.id}`;
+      const porcentaje = maximos > 0
+        ? Math.min(100, Math.round((vendidos / maximos) * 100))
+        : 0;
+
+      const link = r.slug
+        ? `/rifa/${r.slug}`
+        : `/rifa-publica/${r.id}`;
 
       return `
-        <a href="${link}" style="display:block;text-decoration:none;color:inherit;">
-          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.05);margin-bottom:14px;">
-            <div style="font-size:22px;font-weight:800;color:#111827;margin-bottom:6px;">${r.title || "Rifa"}</div>
-            <div style="font-size:15px;color:#4b5563;margin-bottom:10px;">Premio: ${r.prize || "Premio"}</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-              <div style="font-size:15px;color:#374151;">Boleta</div>
-              <div style="font-size:24px;font-weight:900;color:#111827;">$${Number(r.price_per_ticket || 0).toLocaleString("es-CO")}</div>
+        <a href="${link}" style="text-decoration:none;color:inherit;">
+          <div class="card-rifa">
+            <div class="card-top">
+              <div>
+                <div class="card-title">${r.title || "Rifa"}</div>
+                <div class="card-prize">Premio: ${r.prize || "Premio"}</div>
+              </div>
+              <div class="card-price">$${Number(r.price_per_ticket || 0).toLocaleString("es-CO")}</div>
             </div>
-            <div style="height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-bottom:8px;">
-              <div style="width:${porcentaje}%;height:100%;background:#22c55e;"></div>
+
+            <div class="progress-wrap">
+              <div class="progress-bar" style="width:${porcentaje}%;"></div>
             </div>
-            <div style="font-size:14px;color:#6b7280;margin-bottom:14px;">${vendidos} vendidas de ${maximos}</div>
-            <div style="background:#facc15;color:#111827;text-align:center;padding:12px 14px;border-radius:12px;font-weight:800;">
-              Comprar
+
+            <div class="card-meta">
+              ${vendidos} vendidas de ${maximos}
             </div>
+
+            <div class="card-btn">Participar</div>
           </div>
         </a>
       `;
@@ -120,84 +129,387 @@ app.get("/", async (req, res) => {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RifasClaras</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #111827;
+    }
+
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      background: #f5f7fb;
+    }
+
+    .topbar {
+      background: linear-gradient(90deg, #0b3d91, #0f5cc0);
+      color: white;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+
+    .brand span {
+      color: #facc15;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .top-link {
+      text-decoration: none;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.12);
+      white-space: nowrap;
+    }
+
+    .hero {
+      padding: 18px 16px 20px 16px;
+      background:
+        linear-gradient(rgba(10,20,40,.45), rgba(10,20,40,.45)),
+        linear-gradient(135deg, #133c8b, #1d4ed8 55%, #f97316);
+      color: white;
+    }
+
+    .hero-box {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 18px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+
+    .hero-title {
+      font-size: 34px;
+      line-height: 1.05;
+      font-weight: 900;
+      text-align: center;
+      margin: 0 0 14px 0;
+    }
+
+    .hero-sub {
+      font-size: 16px;
+      line-height: 1.4;
+      text-align: center;
+      opacity: .95;
+      margin-bottom: 18px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .btn-main, .btn-secondary {
+      text-decoration: none;
+      text-align: center;
+      padding: 15px 16px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 18px;
+      display: block;
+    }
+
+    .btn-main {
+      background: linear-gradient(180deg, #ff9a1f, #ff6a00);
+      color: white;
+      box-shadow: 0 8px 18px rgba(255,106,0,.28);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #0b3d91;
+      box-shadow: 0 8px 18px rgba(0,0,0,.12);
+    }
+
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: 900;
+      color: #0b3d91;
+      margin: 0 0 16px 0;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .card-rifa {
+      background: white;
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      border: 1px solid #e5e7eb;
+    }
+
+    .card-top {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 900;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    .card-prize {
+      font-size: 18px;
+      color: #4b5563;
+      font-weight: 700;
+    }
+
+    .card-price {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0b3d91;
+    }
+
+    .progress-wrap {
+      height: 12px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0ea5e9, #22c55e);
+      border-radius: 999px;
+    }
+
+    .card-meta {
+      font-size: 15px;
+      color: #6b7280;
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+
+    .card-btn {
+      background: linear-gradient(180deg, #ff9a1f, #ff6a00);
+      color: white;
+      text-align: center;
+      padding: 13px 14px;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 900;
+      box-shadow: 0 6px 14px rgba(255,106,0,.22);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .step {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 8px 20px rgba(0,0,0,.05);
+      text-align: center;
+    }
+
+    .step-emoji {
+      font-size: 52px;
+      margin-bottom: 10px;
+    }
+
+    .step-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #0b3d91;
+      margin-bottom: 8px;
+    }
+
+    .step-text {
+      font-size: 16px;
+      color: #4b5563;
+      line-height: 1.4;
+    }
+
+    .footer-cta {
+      padding: 10px 16px 34px 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-box {
+      background: linear-gradient(135deg, #0b3d91, #f97316);
+      border-radius: 24px;
+      padding: 24px 18px;
+      color: white;
+      text-align: center;
+    }
+
+    .footer-title {
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .footer-text {
+      font-size: 16px;
+      opacity: .95;
+      margin-bottom: 16px;
+    }
+
+    .footer-btn {
+      display: inline-block;
+      text-decoration: none;
+      background: white;
+      color: #0b3d91;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .empty {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 20px;
+      color: #6b7280;
+      font-weight: 700;
+    }
+
+    @media (min-width: 768px) {
+      .hero-title {
+        font-size: 56px;
+      }
+
+      .hero-buttons {
+        flex-direction: row;
+        max-width: 760px;
+      }
+
+      .hero-buttons a {
+        flex: 1;
+      }
+
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .steps {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .card-top {
+        min-height: 135px;
+      }
+    }
+  </style>
 </head>
-<body style="margin:0;font-family:Arial,sans-serif;background:#f8fafc;color:#111827;">
-  <div style="max-width:480px;margin:0 auto;min-height:100vh;background:#f8fafc;">
+<body>
+  <div class="page">
 
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 16px 10px 16px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:34px;height:34px;border-radius:10px;background:#facc15;"></div>
-        <div style="font-size:22px;font-weight:900;color:#2e1065;">RifasClaras</div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <a href="/rifas" style="background:#7c3aed;color:#fff;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:700;">Ver rifas</a>
-        <a href="/organizers/login" style="background:#fff;color:#111827;text-decoration:none;padding:10px 12px;border-radius:12px;font-weight:700;border:1px solid #e5e7eb;">☰</a>
+    <div class="topbar">
+      <div class="brand">Rifas<span>Claras</span></div>
+      <div class="top-actions">
+        <a class="top-link" href="/rifas">Ver Rifas</a>
+        <a class="top-link" href="/organizers/login">Acceso Organizadores</a>
       </div>
     </div>
 
-    <div style="padding:0 16px 16px 16px;">
-      <div style="background:linear-gradient(135deg,#2e1065,#6d28d9);border-radius:28px;padding:26px 18px;color:#fff;box-shadow:0 14px 40px rgba(76,29,149,.28);">
-        <div style="font-size:17px;line-height:1.2;font-weight:900;text-align:center;margin-bottom:12px;">
-          La forma fácil de crear y vender rifas online en Colombia
-        </div>
-        <div style="font-size:15px;text-align:center;opacity:.92;margin-bottom:18px;">
-          Crea, comparte y vende rifas con pagos seguros.
+    <div class="hero">
+      <div class="hero-box">
+        <div class="hero-title">La forma fácil de crear y ganar rifas online en Colombia</div>
+        <div class="hero-sub">
+          Crea, publica y vende rifas con pagos seguros, asignación automática de boletas y administración simple desde tu celular.
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <a href="/organizers/register" style="background:#facc15;color:#111827;text-decoration:none;text-align:center;padding:14px 16px;border-radius:14px;font-weight:900;">
-            Quiero crear una rifa
-          </a>
-          <a href="/rifas" style="background:#9333ea;color:#fff;text-decoration:none;text-align:center;padding:14px 16px;border-radius:14px;font-weight:900;border:1px solid rgba(255,255,255,.15);">
-            Quiero comprar una rifa
-          </a>
+        <div class="hero-buttons">
+          <a class="btn-main" href="/organizers/register">Quiero Crear una Rifa</a>
+          <a class="btn-secondary" href="/rifas">Quiero Comprar una Rifa</a>
         </div>
-      </div>
-
-      <div style="font-size:15px;color:#6b7280;text-align:center;padding:16px 10px 10px 10px;">
-        Miles de personas ya han ganado motos, celulares, mercados y más.
-      </div>
-
-      <div style="font-size:19px;font-weight:900;margin:10px 0 14px 0;">Rifas activas</div>
-
-      ${cards || `
-        <div style="background:#fff;border-radius:18px;padding:18px;border:1px solid #e5e7eb;color:#6b7280;">
-          Aún no hay rifas activas.
-        </div>
-      `}
-
-      <div style="padding:12px 4px 24px 4px;">
-        <div style="font-size:24px;font-weight:900;text-align:center;margin:16px 0 18px 0;">¿Cómo funciona?</div>
-
-        <div style="display:flex;gap:12px;background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid #e5e7eb;">
-          <div style="width:44px;height:44px;border-radius:12px;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:22px;">📝</div>
-          <div>
-            <div style="font-weight:800;font-size:18px;">Crea tu cuenta</div>
-            <div style="color:#6b7280;">Regístrate como organizador.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:12px;background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid #e5e7eb;">
-          <div style="width:44px;height:44px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:22px;">📣</div>
-          <div>
-            <div style="font-weight:800;font-size:18px;">Publica tu rifa</div>
-            <div style="color:#6b7280;">Pon premio, valor y cantidad de boletas.</div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:12px;background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid #e5e7eb;">
-          <div style="width:44px;height:44px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:22px;">💳</div>
-          <div>
-            <div style="font-weight:800;font-size:18px;">Recibe pagos</div>
-            <div style="color:#6b7280;">Comparte tu link y vende con pagos seguros.</div>
-          </div>
-        </div>
-
-        <a href="/organizers/register" style="display:block;background:#111827;color:#fff;text-decoration:none;text-align:center;padding:15px 16px;border-radius:14px;font-weight:900;margin-top:16px;">
-          Crea tu rifa hoy
-        </a>
       </div>
     </div>
+
+    <div class="section">
+      <div class="section-title">🎟 Rifas Destacadas</div>
+      <div class="cards-grid">
+        ${cards || `<div class="empty">Aún no hay rifas activas.</div>`}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🔥 ¿Cómo Funciona?</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-emoji">📱</div>
+          <div class="step-title">1. Crea tu cuenta</div>
+          <div class="step-text">Regístrate como organizador y administra todo desde tu panel.</div>
+        </div>
+
+        <div class="step">
+          <div class="step-emoji">📣</div>
+          <div class="step-title">2. Publica tu rifa</div>
+          <div class="step-text">Configura premio, valor por boleta, cantidad y fecha del sorteo.</div>
+        </div>
+
+        <div class="step">
+          <div class="step-emoji">💸</div>
+          <div class="step-title">3. Vende tus boletas</div>
+          <div class="step-text">Comparte tu link y recibe pagos seguros para crecer tus ventas.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-cta">
+      <div class="footer-box">
+        <div class="footer-title">Empieza hoy con RifasClaras</div>
+        <div class="footer-text">Crea tu primera rifa y compártela en WhatsApp, Facebook e Instagram.</div>
+        <a class="footer-btn" href="/organizers/register">Crear mi cuenta</a>
+      </div>
+    </div>
+
   </div>
 </body>
 </html>
@@ -206,7 +518,6 @@ app.get("/", async (req, res) => {
     return res.status(500).send(e.message);
   }
 });
-
 app.get("/health", async (req, res) => {
   try {
     const { error } = await supabase
