@@ -1164,11 +1164,9 @@ if (String(req.session.organizerId) !== String(organizerId)) {
       <div style="max-width:1100px;margin:30px auto;padding:16px;">
         <h1 style="margin-top:0;">Panel de ${organizer.full_name}</h1>
         <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
-
 <div style="margin-bottom:20px;">
   <a href="/organizers/${organizer.id}/crear-rifa"
-     style="background:#16a34a;color:white;padding:10px 18px;
-     text-decoration:none;border-radius:8px;font-weight:bold;">
+     style="background:#16a34a;color:white;padding:10px 18px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
      + Crear nueva rifa
   </a>
 </div>
