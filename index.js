@@ -985,7 +985,7 @@ app.get("/organizers/:organizerId/panel", async (req, res) => {
         <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
 
 <div style="margin-bottom:20px;">
-  <a href="/panel/rifa/nueva" 
+  href="/organizers/${organizer.id}/crear-rifa"
      style="background:#16a34a;color:white;padding:10px 18px;
      text-decoration:none;border-radius:8px;font-weight:bold;">
      + Crear nueva rifa
