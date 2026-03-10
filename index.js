@@ -938,7 +938,8 @@ app.post("/organizers/login", express.urlencoded({ extended: true }), async (req
       return res.status(401).send("Correo o contraseña incorrectos");
     }
 
-    return res.redirect(`/organizers/${organizer.id}/panel`);
+   req.session.organizerId = organizer.id;
+return res.redirect(`/organizers/${organizer.id}/panel`);
   } catch (e) {
     return res.status(500).send(e.message);
   }
