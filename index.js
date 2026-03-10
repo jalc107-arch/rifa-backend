@@ -2363,11 +2363,6 @@ app.get("/rifas", async (req, res) => {
   }
 });
 
-  } catch (e) {
-    res.status(500).send(e.message);
-  }
-});
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
