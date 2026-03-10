@@ -1074,6 +1074,96 @@ app.post("/panel/rifa/:rifaId/sorteo", express.urlencoded({ extended: true }), a
   }
 });
 
+app.get("/organizers/:organizerId/crear-rifa", async (req, res) => {
+  try {
+    const { organizerId } = req.params;
+
+    const { data: organizer, error } = await supabase
+      .from("organizers")
+      .select("*")
+      .eq("id", organizerId)
+      .single();
+
+    if (error || !organizer) {
+      return res.status(404).send("Organizador no encontrado");
+    }
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crear rifa</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
+  <div style="max-width:760px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
+    <h1 style="margin-top:0;">Crear rifa</h1>
+    <div style="margin-bottom:16px;color:#64748b;">Organizador: ${organizer.full_name}</div>
+
+    <form method="POST" action="/organizers/${organizer.id}/crear-rifa">
+      <div style="margin-bottom:12px;">
+        <label><b>Nombre de la rifa</b></label><br/>
+        <input type="text" name="title" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Premio</b></label><br/>
+        <input type="text" name="prize" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Descripción</b></label><br/>
+        <textarea name="description"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;min-height:100px;"></textarea>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Modalidad</b></label><br/>
+        <select name="modality"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;">
+          <option value="2">2 balotas</option>
+          <option value="3" selected>3 balotas</option>
+          <option value="4">4 balotas</option>
+          <option value="5">5 balotas</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Precio por boleta</b></label><br/>
+        <input type="number" name="price_per_ticket" min="1" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Máximo de boletas</b></label><br/>
+        <input type="number" name="max_tickets" min="1" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <label><b>Fecha del sorteo</b></label><br/>
+        <input type="datetime-local" name="draw_date" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <button type="submit"
+        style="background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;">
+        Crear rifa
+      </button>
+    </form>
+  </div>
+</body>
+</html>
+    `);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
 app.get("/rifa/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
