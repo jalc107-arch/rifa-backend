@@ -1103,6 +1103,14 @@ app.get("/organizers/:organizerId/panel", async (req, res) => {
   try {
     const { organizerId } = req.params;
 
+if (!req.session.organizerId) {
+  return res.redirect("/organizers/login");
+}
+
+if (String(req.session.organizerId) !== String(organizerId)) {
+  return res.redirect("/organizers/login");
+}
+    
     const { data: organizer, error: organizerError } = await supabase
       .from("organizers")
       .select("*")
