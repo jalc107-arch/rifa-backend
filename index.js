@@ -1172,7 +1172,6 @@ if (String(req.session.organizerId) !== String(organizerId)) {
      + Crear nueva rifa
   </a>
 </div>
-
         <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
           <table style="width:100%;border-collapse:collapse;min-width:800px;">
             <thead style="background:#0f172a;color:white;">
