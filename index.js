@@ -76,18 +76,134 @@ function slugify(text) {
 
 app.get("/", async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from("rifa_publica")
-      .select("*");
+    const { data: rifas, error } = await supabase
+      .from("rifas")
+      .select("id,title,prize,price_per_ticket,sold_tickets,max_tickets,slug,status")
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(6);
 
     if (error) throw error;
 
-    res.json({
-      ok: true,
-      rifas: data,
-    });
+    const cards = (rifas || []).map((r) => {
+      const vendidos = Number(r.sold_tickets || 0);
+      const maximos = Number(r.max_tickets || 0);
+      const porcentaje = maximos > 0 ? Math.min(100, Math.round((vendidos / maximos) * 100)) : 0;
+      const link = r.slug ? `/rifa/${r.slug}` : `/rifa-publica/${r.id}`;
+
+      return `
+        <a href="${link}" style="display:block;text-decoration:none;color:inherit;">
+          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.05);margin-bottom:14px;">
+            <div style="font-size:22px;font-weight:800;color:#111827;margin-bottom:6px;">${r.title || "Rifa"}</div>
+            <div style="font-size:15px;color:#4b5563;margin-bottom:10px;">Premio: ${r.prize || "Premio"}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div style="font-size:15px;color:#374151;">Boleta</div>
+              <div style="font-size:24px;font-weight:900;color:#111827;">$${Number(r.price_per_ticket || 0).toLocaleString("es-CO")}</div>
+            </div>
+            <div style="height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-bottom:8px;">
+              <div style="width:${porcentaje}%;height:100%;background:#22c55e;"></div>
+            </div>
+            <div style="font-size:14px;color:#6b7280;margin-bottom:14px;">${vendidos} vendidas de ${maximos}</div>
+            <div style="background:#facc15;color:#111827;text-align:center;padding:12px 14px;border-radius:12px;font-weight:800;">
+              Comprar
+            </div>
+          </div>
+        </a>
+      `;
+    }).join("");
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RifasClaras</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f8fafc;color:#111827;">
+  <div style="max-width:480px;margin:0 auto;min-height:100vh;background:#f8fafc;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 16px 10px 16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;height:34px;border-radius:10px;background:#facc15;"></div>
+        <div style="font-size:22px;font-weight:900;color:#2e1065;">RifasClaras</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <a href="/rifas" style="background:#7c3aed;color:#fff;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:700;">Ver rifas</a>
+        <a href="/organizers/login" style="background:#fff;color:#111827;text-decoration:none;padding:10px 12px;border-radius:12px;font-weight:700;border:1px solid #e5e7eb;">☰</a>
+      </div>
+    </div>
+
+    <div style="padding:0 16px 16px 16px;">
+      <div style="background:linear-gradient(135deg,#2e1065,#6d28d9);border-radius:28px;padding:26px 18px;color:#fff;box-shadow:0 14px 40px rgba(76,29,149,.28);">
+        <div style="font-size:17px;line-height:1.2;font-weight:900;text-align:center;margin-bottom:12px;">
+          La forma fácil de crear y vender rifas online en Colombia
+        </div>
+        <div style="font-size:15px;text-align:center;opacity:.92;margin-bottom:18px;">
+          Crea, comparte y vende rifas con pagos seguros.
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a href="/organizers/register" style="background:#facc15;color:#111827;text-decoration:none;text-align:center;padding:14px 16px;border-radius:14px;font-weight:900;">
+            Quiero crear una rifa
+          </a>
+          <a href="/rifas" style="background:#9333ea;color:#fff;text-decoration:none;text-align:center;padding:14px 16px;border-radius:14px;font-weight:900;border:1px solid rgba(255,255,255,.15);">
+            Quiero comprar una rifa
+          </a>
+        </div>
+      </div>
+
+      <div style="font-size:15px;color:#6b7280;text-align:center;padding:16px 10px 10px 10px;">
+        Miles de personas ya han ganado motos, celulares, mercados y más.
+      </div>
+
+      <div style="font-size:19px;font-weight:900;margin:10px 0 14px 0;">Rifas activas</div>
+
+      ${cards || `
+        <div style="background:#fff;border-radius:18px;padding:18px;border:1px solid #e5e7eb;color:#6b7280;">
+          Aún no hay rifas activas.
+        </div>
+      `}
+
+      <div style="padding:12px 4px 24px 4px;">
+        <div style="font-size:24px;font-weight:900;text-align:center;margin:16px 0 18px 0;">¿Cómo funciona?</div>
+
+        <div style="display:flex;gap:12px;background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid #e5e7eb;">
+          <div style="width:44px;height:44px;border-radius:12px;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:22px;">📝</div>
+          <div>
+            <div style="font-weight:800;font-size:18px;">Crea tu cuenta</div>
+            <div style="color:#6b7280;">Regístrate como organizador.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid #e5e7eb;">
+          <div style="width:44px;height:44px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:22px;">📣</div>
+          <div>
+            <div style="font-weight:800;font-size:18px;">Publica tu rifa</div>
+            <div style="color:#6b7280;">Pon premio, valor y cantidad de boletas.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid #e5e7eb;">
+          <div style="width:44px;height:44px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:22px;">💳</div>
+          <div>
+            <div style="font-weight:800;font-size:18px;">Recibe pagos</div>
+            <div style="color:#6b7280;">Comparte tu link y vende con pagos seguros.</div>
+          </div>
+        </div>
+
+        <a href="/organizers/register" style="display:block;background:#111827;color:#fff;text-decoration:none;text-align:center;padding:15px 16px;border-radius:14px;font-weight:900;margin-top:16px;">
+          Crea tu rifa hoy
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `);
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    return res.status(500).send(e.message);
   }
 });
 
