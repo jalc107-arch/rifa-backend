@@ -901,6 +901,12 @@ app.get("/organizers/login", async (req, res) => {
         </button>
       </form>
 
+<div style="margin-top:14px;text-align:center;">
+  <a href="/organizers/forgot-password" style="color:#2563eb;text-decoration:none;font-weight:600;">
+    ¿Olvidaste tu contraseña?
+  </a>
+</div>
+
       <div style="margin-top:14px;">
         <a href="/organizers/register" style="color:#16a34a;text-decoration:none;font-weight:700;">Crear cuenta</a>
       </div>
@@ -933,6 +939,160 @@ app.post("/organizers/login", express.urlencoded({ extended: true }), async (req
     }
 
     return res.redirect(`/organizers/${organizer.id}/panel`);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
+app.get("/organizers/forgot-password", (req, res) => {
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Recuperar contraseña</title>
+</head>
+
+<body style="font-family:Arial;background:#f4f7fb;margin:0;padding:40px;">
+
+<div style="max-width:420px;margin:auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.08);">
+
+<h2>Recuperar contraseña</h2>
+
+<form method="POST" action="/organizers/forgot-password">
+
+<div style="margin-bottom:14px;">
+<label>Correo</label><br/>
+<input type="email" name="email" required
+style="width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;margin-top:5px;">
+</div>
+
+<button type="submit"
+style="background:#2563eb;color:white;border:none;padding:12px 18px;border-radius:8px;font-weight:bold;width:100%;">
+Buscar cuenta
+</button>
+
+</form>
+
+<div style="margin-top:14px;text-align:center;">
+<a href="/organizers/login">Volver al login</a>
+</div>
+
+</div>
+
+</body>
+</html>
+`);
+});
+
+app.post("/organizers/forgot-password", express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const email = String(req.body.email || "").trim().toLowerCase();
+
+    if (!email) {
+      return res.status(400).send("Falta el correo");
+    }
+
+    const { data: organizer, error } = await supabase
+      .from("organizers")
+      .select("id, email, full_name")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!organizer) {
+      return res.status(404).send("No existe un organizador con ese correo");
+    }
+
+    return res.redirect(`/organizers/reset-password/${organizer.id}`);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
+app.get("/organizers/reset-password/:organizerId", async (req, res) => {
+  try {
+    const { organizerId } = req.params;
+
+    const { data: organizer, error } = await supabase
+      .from("organizers")
+      .select("id, email, full_name")
+      .eq("id", organizerId)
+      .single();
+
+    if (error || !organizer) {
+      return res.status(404).send("Organizador no encontrado");
+    }
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nueva contraseña</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
+  <div style="max-width:520px;margin:60px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
+    <h1 style="margin-top:0;">Nueva contraseña</h1>
+    <div style="margin-bottom:12px;color:#64748b;">Organizador: ${organizer.full_name || organizer.email}</div>
+
+    <form method="POST" action="/organizers/reset-password/${organizer.id}">
+      <div style="margin-bottom:14px;">
+        <label><b>Nueva contraseña</b></label><br/>
+        <input type="password" name="password" required minlength="4"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <label><b>Confirmar contraseña</b></label><br/>
+        <input type="password" name="confirm_password" required minlength="4"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <button type="submit"
+        style="width:100%;background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;">
+        Guardar nueva contraseña
+      </button>
+    </form>
+  </div>
+</body>
+</html>
+    `);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
+app.post("/organizers/reset-password/:organizerId", express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { organizerId } = req.params;
+    const password = String(req.body.password || "").trim();
+    const confirmPassword = String(req.body.confirm_password || "").trim();
+
+    if (!password || !confirmPassword) {
+      return res.status(400).send("Faltan datos");
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).send("Las contraseñas no coinciden");
+    }
+
+    if (password.length < 4) {
+      return res.status(400).send("La contraseña debe tener al menos 4 caracteres");
+    }
+
+    const { error } = await supabase
+      .from("organizers")
+      .update({ password })
+      .eq("id", organizerId);
+
+    if (error) throw error;
+
+    return res.redirect("/organizers/login");
   } catch (e) {
     return res.status(500).send(e.message);
   }
