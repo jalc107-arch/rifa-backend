@@ -1249,9 +1249,10 @@ if (String(req.session.organizerId) !== String(organizerId)) {
       return res.status(404).send("Organizador no encontrado");
     }
 
-   const { data: rifas, error: rifasError } = await supabase
+  const { data: rifas, error: rifasError } = await supabase
   .from("rifas")
   .select("*")
+  .eq("owner_id", organizer.profile_id)
   .order("created_at", { ascending: false });
 
     if (rifasError) throw rifasError;
@@ -1501,7 +1502,19 @@ app.post("/organizers/:organizerId/crear-rifa", express.urlencoded({ extended: t
     if (existingSlug) {
       slug = `${slug}-${Date.now().toString().slice(-6)}`;
     }
+const { data: organizer, error: organizerError } = await supabase
+  .from("organizers")
+  .select("*")
+  .eq("id", organizerId)
+  .single();
 
+if (organizerError || !organizer) {
+  return res.status(404).send("Organizador no encontrado");
+}
+
+if (!organizer.profile_id) {
+  return res.status(400).send("El organizador no tiene profile_id asociado");
+}
     const { data: rifa, error } = await supabase
       .from("rifas")
       .insert({
