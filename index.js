@@ -1164,6 +1164,78 @@ app.get("/organizers/:organizerId/crear-rifa", async (req, res) => {
   }
 });
 
+app.post("/organizers/:organizerId/crear-rifa", express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { organizerId } = req.params;
+    const title = String(req.body.title || "").trim();
+    const prize = String(req.body.prize || "").trim();
+    const description = String(req.body.description || "").trim();
+    const modality = Number(req.body.modality || 3);
+    const pricePerTicket = Number(req.body.price_per_ticket || 0);
+    const maxTickets = Number(req.body.max_tickets || 0);
+    const drawDateRaw = String(req.body.draw_date || "").trim();
+
+    if (!title || !prize || !drawDateRaw) {
+      return res.status(400).send("Faltan campos obligatorios");
+    }
+
+    if (![2, 3, 4, 5].includes(modality)) {
+      return res.status(400).send("Modalidad inválida");
+    }
+
+    if (!Number.isFinite(pricePerTicket) || pricePerTicket <= 0) {
+      return res.status(400).send("Precio inválido");
+    }
+
+    if (!Number.isInteger(maxTickets) || maxTickets <= 0) {
+      return res.status(400).send("Máximo de boletas inválido");
+    }
+
+    const drawDate = new Date(drawDateRaw);
+    if (Number.isNaN(drawDate.getTime())) {
+      return res.status(400).send("Fecha inválida");
+    }
+
+    let slug = slugify(title);
+    if (!slug) slug = `rifa-${Date.now()}`;
+
+    const { data: existingSlug } = await supabase
+      .from("rifas")
+      .select("id, slug")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (existingSlug) {
+      slug = `${slug}-${Date.now().toString().slice(-6)}`;
+    }
+
+    const { data: rifa, error } = await supabase
+      .from("rifas")
+      .insert({
+        owner_id: organizerId,
+        title,
+        prize,
+        description,
+        modality,
+        price_per_ticket: pricePerTicket,
+        max_tickets: maxTickets,
+        sold_tickets: 0,
+        available_tickets: maxTickets,
+        draw_date: drawDate.toISOString(),
+        status: "active",
+        slug,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.redirect(`/organizers/${organizerId}/panel`);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
 app.get("/rifa/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
