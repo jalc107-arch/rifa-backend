@@ -1,10 +1,22 @@
 import express from "express";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
+import session from "express-session";
 
 const app = express();
 app.use(express.json());
 app.set("trust proxy", 1);
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || "rifasclaras_secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    sameSite: "lax"
+  }
+}));
 
 // WEBHOOK VERIFICACION WHATSAPP
 app.get("/webhook", (req, res) => {
