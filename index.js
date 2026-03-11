@@ -3123,12 +3123,12 @@ if (key !== ADMIN_KEY) {
 
         <div style="display:flex;gap:10px;">
           
-          <a href="/admin/aprobar/${r.slug}" 
+          <a href="/admin/aprobar/${r.slug}?key=${ADMIN_KEY}" 
           style="background:#22c55e;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:600;">
           Aprobar
           </a>
 
-          <a href="/admin/rechazar/${r.slug}" 
+          <a href="/admin/rechazar/${r.slug}?key=${ADMIN_KEY}"
           style="background:#ef4444;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:600;">
           Rechazar
           </a>
