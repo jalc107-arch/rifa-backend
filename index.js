@@ -3357,6 +3357,50 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
   }
 });
 
+app.post("/organizers/:organizerId/verificacion", async (req, res) => {
+  try {
+    const { organizerId } = req.params;
+
+    const {
+      document_number,
+      id_front_url,
+      id_back_url,
+      selfie_id_url,
+      payout_method,
+      bank_name,
+      account_type,
+      account_number,
+      account_holder,
+      prize_proof_url,
+      terms_accepted
+    } = req.body;
+
+    const { error } = await supabase
+      .from("organizers")
+      .update({
+        document_number,
+        id_front_url,
+        id_back_url,
+        selfie_id_url,
+        payout_method,
+        bank_name,
+        account_type,
+        account_number,
+        account_holder,
+        prize_proof_url,
+        terms_accepted: terms_accepted === "true",
+        verification_status: "pending"
+      })
+      .eq("id", organizerId);
+
+    if (error) throw error;
+
+    return res.redirect(`/organizers/${organizerId}/panel`);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
