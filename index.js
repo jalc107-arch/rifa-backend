@@ -2972,6 +2972,64 @@ Al utilizar la plataforma, aceptas las prácticas descritas en esta política de
 
 })
 
+app.get("/contacto", (req, res) => {
+
+res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Contacto - PromoClaras</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+font-family:Arial;
+background:#f5f7fb;
+margin:0;
+padding:30px;
+max-width:900px;
+margin:auto;
+line-height:1.6;
+}
+
+h1{
+color:#0b3d91;
+}
+
+p{
+margin-bottom:16px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Contacto</h1>
+
+<p>
+Si tienes dudas sobre la plataforma o sobre una campaña promocional, puedes escribirnos a:
+</p>
+
+<p>
+<b>Correo:</b> rifasclaras@gmail.com
+</p>
+
+<p>
+<b>Sitio web:</b> https://rifasclaras.com
+</p>
+
+<p>
+Nuestro equipo de soporte atenderá las solicitudes relacionadas con el funcionamiento de la plataforma.
+</p>
+
+</body>
+</html>
+`)
+
+})
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
