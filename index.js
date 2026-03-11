@@ -453,7 +453,7 @@ app.get("/", async (req, res) => {
     <div class="topbar">
       <div class="brand">Rifas<span>Claras</span></div>
       <div class="top-actions">
-        <a class="top-link" href="/rifas">Ver Rifas</a>
+        <a class="top-link" href="/rifas">Ver Campañas</a>
         <a class="top-link" href="/organizers/login">Acceso Organizadores</a>
       </div>
     </div>
