@@ -504,7 +504,7 @@ app.get("/", async (req, res) => {
 
     <div class="footer-cta">
       <div class="footer-box">
-        <div class="footer-title">Empieza hoy con RifasClaras</div>
+        <div class="footer-title">Empieza hoy con PromoClaras</div>
         <div class="footer-text">Crea tu primera rifa y compártela en WhatsApp, Facebook e Instagram.</div>
         <a class="footer-btn" href="/organizers/register">Crear mi cuenta</a>
       </div>
