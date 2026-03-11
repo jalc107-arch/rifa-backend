@@ -2904,7 +2904,69 @@ publicada y de la entrega de los incentivos o premios ofrecidos.
 </html>
 `);
 });
- 
+
+app.get("/privacidad", (req, res) => {
+
+res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Política de Privacidad - PromoClaras</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+font-family:Arial;
+background:#f5f7fb;
+margin:0;
+padding:30px;
+max-width:900px;
+margin:auto;
+line-height:1.6;
+}
+
+h1{
+color:#0b3d91;
+}
+
+p{
+margin-bottom:16px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Política de Privacidad</h1>
+
+<p>
+En PromoClaras respetamos la privacidad de nuestros usuarios y nos comprometemos a proteger la información personal que compartes con nosotros.
+</p>
+
+<p>
+La información recopilada puede incluir nombre, correo electrónico y datos necesarios para gestionar campañas promocionales dentro de la plataforma.
+</p>
+
+<p>
+Esta información se utiliza exclusivamente para el funcionamiento de la plataforma, la gestión de campañas y la comunicación con los usuarios.
+</p>
+
+<p>
+PromoClaras no vende ni comparte información personal con terceros, excepto cuando sea necesario para procesar pagos o cumplir con obligaciones legales.
+</p>
+
+<p>
+Al utilizar la plataforma, aceptas las prácticas descritas en esta política de privacidad.
+</p>
+
+</body>
+</html>
+`)
+
+})
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
