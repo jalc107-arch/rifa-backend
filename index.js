@@ -2273,7 +2273,7 @@ ${rifa.slug ? `${base}/r/${rifa.slug}` : `${base}/rifa-publica/${rifa.id}`}`)}"
               <label>Cantidad de cupones</label>
               <input type="number" name="qty" min="1" max="${disponibles || 1}" value="1" required />
 
-              <button type="submit" class="buy-btn">Comprar ahora</button>
+              <button type="submit" class="buy-btn">Participar en la campaña</button>
             </form>
 
             <div class="small-text">
