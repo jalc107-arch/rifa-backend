@@ -2198,7 +2198,7 @@ res.send(`
       <div class="content-grid">
         <div>
           <div class="card">
-            <h2 class="section-title">Detalles de la rifa</h2>
+            <h2 class="section-title">Detalles de la campaña</h2>
             <div class="desc">
               ${rifa.description || "Sin descripción disponible."}
             </div>
