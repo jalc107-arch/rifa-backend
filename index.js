@@ -3581,6 +3581,48 @@ app.get("/admin/organizadores", async (req, res) => {
   }
 });
 
+app.post("/admin/organizadores/:organizerId/aprobar", async (req, res) => {
+  try {
+
+    const { organizerId } = req.params;
+
+    const { error } = await supabase
+      .from("organizers")
+      .update({
+        verification_status: "verified"
+      })
+      .eq("id", organizerId);
+
+    if (error) throw error;
+
+    return res.redirect("/admin/organizadores");
+
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
+app.post("/admin/organizadores/:organizerId/rechazar", async (req, res) => {
+  try {
+
+    const { organizerId } = req.params;
+
+    const { error } = await supabase
+      .from("organizers")
+      .update({
+        verification_status: "rejected"
+      })
+      .eq("id", organizerId);
+
+    if (error) throw error;
+
+    return res.redirect("/admin/organizadores");
+
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
