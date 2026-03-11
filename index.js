@@ -1582,6 +1582,7 @@ if (String(req.session.organizerId) !== String(organizerId)) {
         <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.sold_tickets || 0}</td>
         <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.available_tickets || 0}</td>
         <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:right;">$${Number(r.price_per_ticket || 0).toLocaleString("es-CO")}</td>
+        <td style="padding:14px;text-align:center;">${r.status || ""}</td>
       </tr>
     `).join("");
 
@@ -1613,6 +1614,7 @@ if (String(req.session.organizerId) !== String(organizerId)) {
                 <th style="padding:14px;text-align:center;">Vendidas</th>
                 <th style="padding:14px;text-align:center;">Disponibles</th>
                 <th style="padding:14px;text-align:right;">Precio</th>
+                <th style="padding:14px;text-align:center;">Estado</th>
               </tr>
             </thead>
             <tbody>
