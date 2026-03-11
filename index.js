@@ -2832,6 +2832,75 @@ app.get("/rifas", async (req, res) => {
 </body>
 </html>
     `);
+    app.get("/terminos", (req, res) => {
+
+res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Términos y Condiciones</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+font-family:Arial;
+background:#f5f7fb;
+margin:0;
+padding:30px;
+max-width:900px;
+margin:auto;
+line-height:1.6;
+}
+
+h1{
+color:#0b3d91;
+}
+
+p{
+margin-bottom:16px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Términos y Condiciones</h1>
+
+<p>
+RifasClaras es una plataforma tecnológica que permite a emprendedores
+y comercios crear campañas promocionales digitales para promocionar
+productos o servicios.
+</p>
+
+<p>
+Los organizadores publican campañas promocionales dentro de la
+plataforma y los usuarios pueden adquirir cupones digitales
+de participación.
+</p>
+
+<p>
+La asignación de cupones se realiza automáticamente mediante
+el sistema.
+</p>
+
+<p>
+RifasClaras actúa únicamente como plataforma tecnológica que facilita
+la publicación y gestión de campañas promocionales entre organizadores
+y participantes.
+</p>
+
+<p>
+Cada organizador es responsable de la veracidad de la información
+publicada y de la entrega de los incentivos o premios ofrecidos.
+</p>
+
+</body>
+</html>
+`)
+
+})
   } catch (e) {
     res.status(500).send(e.message);
   }
