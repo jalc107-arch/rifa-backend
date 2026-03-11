@@ -3013,7 +3013,7 @@ Si tienes dudas sobre la plataforma o sobre una campaña promocional, puedes esc
 </p>
 
 <p>
-<b>Correo:</b> rifasclaras@gmail.com
+<b>Correo:</b> promoclaras@gmail.com
 </p>
 
 <p>
