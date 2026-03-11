@@ -2832,6 +2832,10 @@ app.get("/rifas", async (req, res) => {
 </body>
 </html>
     `);
+     } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
     app.get("/terminos", (req, res) => {
 
 res.send(`
@@ -2899,12 +2903,8 @@ publicada y de la entrega de los incentivos o premios ofrecidos.
 </body>
 </html>
 `);
-
 })
-  } catch (e) {
-    res.status(500).send(e.message);
-  }
-});
+ 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
