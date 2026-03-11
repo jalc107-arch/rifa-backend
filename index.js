@@ -1961,9 +1961,13 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
       .eq("id", rifaId)
       .single();
 
-    if (error || !rifa) {
-      return res.status(404).send("Rifa no existe");
-    }
+if (error || !rifa) {
+  return res.status(404).send("Rifa no existe");
+}
+
+if (rifa.status !== "approved") {
+  return res.status(404).send("Campaña no disponible");
+}
 
     const base = getBaseUrl(req);
     const vendidos = Number(rifa.sold_tickets || 0);
