@@ -1892,9 +1892,9 @@ app.get("/r/:slug", async (req, res) => {
       .eq("slug", slug)
       .single();
 
-    if (!rifa) {
-      return res.status(404).send("Rifa no encontrada");
-    }
+    if (!rifa || rifa.status !== "approved") {
+  return res.status(404).send("Campaña no disponible");
+}
 
     const base = getBaseUrl(req);
 
