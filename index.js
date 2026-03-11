@@ -490,7 +490,7 @@ app.get("/", async (req, res) => {
 
         <div class="step">
           <div class="step-emoji">📣</div>
-          <div class="step-title">2. Publica tu rifa</div>
+          <div class="step-title">2. Publica tu campaña</div>
           <div class="step-text">Configura premio, valor por boleta, cantidad y fecha del sorteo.</div>
         </div>
 
