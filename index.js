@@ -3089,6 +3089,98 @@ app.get("/admin/rechazar/:slug", async (req, res) => {
   }
 });
 
+app.get("/admin/pendientes", async (req, res) => {
+  try {
+
+    const { data, error } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const cards = (data || []).map(r => {
+      return `
+      <div style="background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;border:1px solid #e5e7eb;">
+        
+        <div style="font-size:20px;font-weight:700;margin-bottom:8px;">
+          ${r.title}
+        </div>
+
+        <div style="color:#6b7280;margin-bottom:10px;">
+          Premio: ${r.prize}
+        </div>
+
+        <div style="margin-bottom:14px;">
+          Precio participación: $${Number(r.price_per_ticket).toLocaleString("es-CO")}
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          
+          <a href="/admin/aprobar/${r.slug}" 
+          style="background:#22c55e;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:600;">
+          Aprobar
+          </a>
+
+          <a href="/admin/rechazar/${r.slug}" 
+          style="background:#ef4444;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:600;">
+          Rechazar
+          </a>
+
+        </div>
+
+      </div>
+      `;
+    }).join("");
+
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <title>Panel Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+    body{
+      font-family:Arial;
+      background:#f4f7fb;
+      margin:0;
+      padding:30px;
+    }
+
+    h1{
+      margin-bottom:25px;
+    }
+
+    .container{
+      max-width:800px;
+      margin:auto;
+    }
+    </style>
+
+    </head>
+
+    <body>
+
+    <div class="container">
+
+    <h1>Campañas pendientes</h1>
+
+    ${cards || "<p>No hay campañas pendientes.</p>"}
+
+    </div>
+
+    </body>
+    </html>
+    `);
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
