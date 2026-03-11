@@ -473,7 +473,7 @@ app.get("/", async (req, res) => {
     </div>
 
     <div class="section">
-      <div class="section-title">🎟 Rifas Destacadas</div>
+     <div class="section-title">🎟 Campañas destacadas</div>
       <div class="cards-grid">
         ${cards || `<div class="empty">Aún no hay rifas activas.</div>`}
       </div>
