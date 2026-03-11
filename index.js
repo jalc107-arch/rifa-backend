@@ -698,7 +698,7 @@ app.get("/crear-rifa", async (req, res) => {
 
     <form method="POST" action="/crear-rifa">
       <div style="margin-bottom:12px;">
-        <label><b>Nombre de la rifa</b></label><br/>
+        <label><b>Nombre de la campaña</b></label><br/>
         <input type="text" name="title" required
           style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
       </div>
@@ -1716,7 +1716,7 @@ app.get("/organizers/:organizerId/crear-rifa", async (req, res) => {
 
     <form method="POST" action="/organizers/${organizer.id}/crear-rifa">
       <div style="margin-bottom:12px;">
-        <label><b>Nombre de la rifa</b></label><br/>
+        <label><b>Nombre de la campaña</b></label><br/>
         <input type="text" name="title" required
           style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
       </div>
