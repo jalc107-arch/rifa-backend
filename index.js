@@ -2843,7 +2843,7 @@ res.send(`
 <html>
 <head>
 <meta charset="utf-8">
-<title>Términos y Condiciones</title>
+<title>Términos y Condiciones - PromoClaras</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -2873,7 +2873,7 @@ margin-bottom:16px;
 <h1>Términos y Condiciones</h1>
 
 <p>
-RifasClaras es una plataforma tecnológica que permite a emprendedores
+PromoClaras actúa únicamente como plataforma tecnológica que permite a emprendedores
 y comercios crear campañas promocionales digitales para promocionar
 productos o servicios.
 </p>
@@ -2890,7 +2890,7 @@ el sistema.
 </p>
 
 <p>
-RifasClaras actúa únicamente como plataforma tecnológica que facilita
+PromoClaras actúa únicamente como plataforma tecnológica que facilita
 la publicación y gestión de campañas promocionales entre organizadores
 y participantes.
 </p>
