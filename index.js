@@ -467,7 +467,7 @@ app.get("/", async (req, res) => {
 
         <div class="hero-buttons">
           <a class="btn-main" href="/organizers/register">Quiero Crear una Campaña</a>
-          <a class="btn-secondary" href="/rifas">Quiero Comprar una Rifa</a>
+          <a class="btn-secondary" href="/rifas">Participar en una Campaña</a>
         </div>
       </div>
     </div>
