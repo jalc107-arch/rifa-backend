@@ -1609,7 +1609,7 @@ if (String(req.session.organizerId) !== String(organizerId)) {
           <table style="width:100%;border-collapse:collapse;min-width:800px;">
             <thead style="background:#0f172a;color:white;">
               <tr>
-                <th style="padding:14px;text-align:left;">Rifa</th>
+                <th style="padding:14px;text-align:left;">Campaña</th>
                 <th style="padding:14px;text-align:left;">Premio</th>
                 <th style="padding:14px;text-align:center;">Vendidas</th>
                 <th style="padding:14px;text-align:center;">Disponibles</th>
