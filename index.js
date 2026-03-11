@@ -460,9 +460,9 @@ app.get("/", async (req, res) => {
 
     <div class="hero">
       <div class="hero-box">
-        <div class="hero-title">La forma fácil de crear y ganar rifas online en Colombia</div>
+        <div class="hero-title">La forma fácil de crear campañas promocionales online en Colombia</div>
         <div class="hero-sub">
-          Crea, publica y vende rifas con pagos seguros, asignación automática de boletas y administración simple desde tu celular.
+          Crea y administra campañas promocionales digitales con pagos seguros y asignación automática de cupones.
         </div>
 
         <div class="hero-buttons">
