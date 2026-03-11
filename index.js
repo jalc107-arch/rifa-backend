@@ -3247,6 +3247,116 @@ if (key !== ADMIN_KEY) {
   }
 });
 
+app.get("/organizers/:organizerId/verificacion", async (req, res) => {
+  try {
+    const { organizerId } = req.params;
+
+    const { data: organizer, error } = await supabase
+      .from("organizers")
+      .select("*")
+      .eq("id", organizerId)
+      .single();
+
+    if (error || !organizer) {
+      return res.status(404).send("Organizador no encontrado");
+    }
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verificación de organizador</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
+  <div style="max-width:760px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
+    <h1 style="margin-top:0;">Verificación de organizador</h1>
+    <div style="margin-bottom:16px;color:#64748b;">Completa esta información para poder publicar campañas.</div>
+
+    <form method="POST" action="/organizers/${organizer.id}/verificacion">
+      <div style="margin-bottom:12px;">
+        <label><b>Número de cédula</b></label><br/>
+        <input type="text" name="document_number" value="${organizer.document_number || ""}" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>URL foto cédula frente</b></label><br/>
+        <input type="text" name="id_front_url" value="${organizer.id_front_url || ""}" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>URL foto cédula reverso</b></label><br/>
+        <input type="text" name="id_back_url" value="${organizer.id_back_url || ""}" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>URL selfie con cédula</b></label><br/>
+        <input type="text" name="selfie_id_url" value="${organizer.selfie_id_url || ""}" required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Método de pago</b></label><br/>
+        <input type="text" name="payout_method" value="${organizer.payout_method || ""}" placeholder="Banco, Nequi, Daviplata..." required
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Banco</b></label><br/>
+        <input type="text" name="bank_name" value="${organizer.bank_name || ""}"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Tipo de cuenta</b></label><br/>
+        <input type="text" name="account_type" value="${organizer.account_type || ""}" placeholder="Ahorros o corriente"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Número de cuenta</b></label><br/>
+        <input type="text" name="account_number" value="${organizer.account_number || ""}"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>Titular de la cuenta</b></label><br/>
+        <input type="text" name="account_holder" value="${organizer.account_holder || ""}"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label><b>URL prueba del premio (opcional)</b></label><br/>
+        <input type="text" name="prize_proof_url" value="${organizer.prize_proof_url || ""}"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <label style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" name="terms_accepted" value="true" ${organizer.terms_accepted ? "checked" : ""} />
+          <span><b>Acepto los términos y soy responsable de la información y premios publicados.</b></span>
+        </label>
+      </div>
+
+      <button type="submit"
+        style="background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;">
+        Guardar verificación
+      </button>
+    </form>
+  </div>
+</body>
+</html>
+    `);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
