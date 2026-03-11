@@ -2252,7 +2252,7 @@ ${rifa.slug ? `${base}/r/${rifa.slug}` : `${base}/rifa-publica/${rifa.id}`}`)}"
           </a>
 
           <div class="notice">
-            Los números <b>no se eligen manualmente</b>. Se asignan automáticamente después del pago aprobado.
+            Los cupones de participación se asignan automáticamente después del pago aprobado.
           </div>
         </div>
 
