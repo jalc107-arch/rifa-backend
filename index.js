@@ -81,7 +81,7 @@ app.get("/", async (req, res) => {
     const { data: rifas, error } = await supabase
       .from("rifas")
       .select("id,title,prize,price_per_ticket,sold_tickets,max_tickets,slug,status")
-      .eq("status", "active")
+      .eq("status", "approved")
       .order("created_at", { ascending: false })
       .limit(6);
 
