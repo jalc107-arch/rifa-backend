@@ -612,7 +612,9 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
     if (rifaError || !rifa) {
       return res.status(404).send("Rifa no existe");
     }
-
+if (!rifa || rifa.status !== "approved") {
+  return res.status(400).send("Esta campaña aún no está aprobada para recibir compras.");
+}
     const total = qty * Number(rifa.price_per_ticket);
     const commission = total * 0.03;
 
