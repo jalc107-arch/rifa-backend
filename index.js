@@ -3030,6 +3030,65 @@ Nuestro equipo de soporte atenderá las solicitudes relacionadas con el funciona
 
 })
 
+app.get("/admin/aprobar/:slug", async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const { error } = await supabase
+      .from("rifas")
+      .update({ status: "approved" })
+      .eq("slug", slug);
+
+    if (error) throw error;
+
+    res.send(`
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Campaña aprobada</title>
+      </head>
+      <body style="font-family:Arial;background:#f5f7fb;padding:40px;text-align:center;">
+        <h1 style="color:#16a34a;">Campaña aprobada</h1>
+        <p>La campaña con slug <b>${slug}</b> fue aprobada correctamente.</p>
+        <p><a href="/rifas">Ver campañas públicas</a></p>
+      </body>
+      </html>
+    `);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+app.get("/admin/rechazar/:slug", async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const { error } = await supabase
+      .from("rifas")
+      .update({ status: "rejected" })
+      .eq("slug", slug);
+
+    if (error) throw error;
+
+    res.send(`
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Campaña rechazada</title>
+      </head>
+      <body style="font-family:Arial;background:#f5f7fb;padding:40px;text-align:center;">
+        <h1 style="color:#dc2626;">Campaña rechazada</h1>
+        <p>La campaña con slug <b>${slug}</b> fue rechazada correctamente.</p>
+      </body>
+      </html>
+    `);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
