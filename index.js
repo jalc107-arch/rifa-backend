@@ -2870,7 +2870,7 @@ margin-bottom:16px;
 
 <body>
 
-<h1>Términos y Condiciones</h1>
+<h1>Términos y Condiciones - PromoClaras</h1>
 
 <p>
 PromoClaras actúa únicamente como plataforma tecnológica que permite a emprendedores
