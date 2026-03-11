@@ -965,7 +965,7 @@ const comisionGeneral = (totalComisionGeneral.data || []).reduce((acc, o) => {
       <table style="width:100%;border-collapse:collapse;min-width:1000px;">
         <thead style="background:#0f172a;color:white;">
           <tr>
-            <th style="padding:14px;text-align:left;">Rifa</th>
+            <th style="padding:14px;text-align:left;">Campaña</th>
             <th style="padding:14px;text-align:left;">Premio</th>
             <th style="padding:14px;text-align:center;">Modalidad</th>
             <th style="padding:14px;text-align:right;">Precio</th>
