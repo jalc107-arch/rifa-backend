@@ -510,10 +510,10 @@ app.get("/", async (req, res) => {
       </div>
     </div>
 
-  </div>
-  <div style="text-align:center;padding:10px 16px 30px 16px;color:#6b7280;font-size:14px;">
-  <a href="/terminos" style="color:#0b3d91;text-decoration:none;font-weight:700;margin-right:14px;">Términos y Condiciones</a>
-  <a href="/privacidad" style="color:#0b3d91;text-decoration:none;font-weight:700;">Política de Privacidad</a>
+ <div style="text-align:center;padding:20px;color:#6b7280;font-size:14px;">
+  <a href="/terminos" style="color:#0b3d91;text-decoration:none;font-weight:600;margin-right:15px;">Términos y Condiciones</a>
+  <a href="/privacidad" style="color:#0b3d91;text-decoration:none;font-weight:600;margin-right:15px;">Política de Privacidad</a>
+  <a href="/contacto" style="color:#0b3d91;text-decoration:none;font-weight:600;">Contacto</a>
 </div>
 
 </body>
