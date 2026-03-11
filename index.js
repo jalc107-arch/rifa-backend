@@ -1972,7 +1972,19 @@ if (error || !rifa) {
 if (rifa.status !== "approved") {
   return res.status(404).send("Campaña no disponible");
 }
+let estadoTexto = "Campaña";
+let estadoColor = "#6c757d";
 
+if (rifa.status === "approved") {
+  estadoTexto = "🟢 Campaña activa";
+  estadoColor = "#28a745";
+} else if (rifa.status === "pending") {
+  estadoTexto = "🟡 En revisión";
+  estadoColor = "#ffc107";
+} else if (rifa.status === "rejected") {
+  estadoTexto = "🔴 No aprobada";
+  estadoColor = "#dc3545";
+}
     const base = getBaseUrl(req);
     const vendidos = Number(rifa.sold_tickets || 0);
     const disponibles = Number(rifa.available_tickets || 0);
@@ -2212,11 +2224,11 @@ res.send(`
     <div class="content">
       <div class="content-grid">
         <div>
-          <div class="card">
-            <h2 class="section-title">Detalles de la campaña</h2>
-            <div class="desc">
-              ${rifa.description || "Sin descripción disponible."}
-            </div>
+          <div class="hero">
+  <div class="badge">${estadoTexto}</div>
+  <div class="title">${rifa.title}</div>
+  <div class="prize">Premio: ${rifa.prize || "Premio no definido"}</div>
+</div>
 
             <div class="stats">
               <div class="stat">
