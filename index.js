@@ -3401,6 +3401,96 @@ app.post("/organizers/:organizerId/verificacion", async (req, res) => {
   }
 });
 
+app.get("/admin/organizadores", async (req, res) => {
+  try {
+
+    const { data: organizers, error } = await supabase
+      .from("organizers")
+      .select("*")
+      .eq("verification_status", "pending")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const cards = (organizers || []).map(o => `
+      <div style="
+        border:1px solid #e2e8f0;
+        padding:18px;
+        border-radius:12px;
+        margin-bottom:14px;
+        background:white;
+      ">
+        <h3 style="margin-top:0">${o.full_name || "Organizador"}</h3>
+
+        <div><b>Email:</b> ${o.email}</div>
+        <div><b>Cédula:</b> ${o.document_number || "-"}</div>
+
+        <div style="margin-top:10px">
+          <b>Cédula frente:</b><br>
+          <a href="${o.id_front_url}" target="_blank">Ver documento</a>
+        </div>
+
+        <div style="margin-top:10px">
+          <b>Cédula reverso:</b><br>
+          <a href="${o.id_back_url}" target="_blank">Ver documento</a>
+        </div>
+
+        <div style="margin-top:10px">
+          <b>Selfie con cédula:</b><br>
+          <a href="${o.selfie_id_url}" target="_blank">Ver selfie</a>
+        </div>
+
+        <div style="margin-top:14px">
+
+          <form method="POST" action="/admin/organizadores/${o.id}/aprobar" style="display:inline;">
+            <button style="
+              background:#16a34a;
+              border:none;
+              color:white;
+              padding:10px 14px;
+              border-radius:8px;
+              cursor:pointer;
+              font-weight:600;
+            ">Aprobar</button>
+          </form>
+
+          <form method="POST" action="/admin/organizadores/${o.id}/rechazar" style="display:inline;margin-left:8px;">
+            <button style="
+              background:#dc2626;
+              border:none;
+              color:white;
+              padding:10px 14px;
+              border-radius:8px;
+              cursor:pointer;
+              font-weight:600;
+            ">Rechazar</button>
+          </form>
+
+        </div>
+      </div>
+    `).join("");
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+      <html>
+      <head>
+        <title>Verificación de organizadores</title>
+      </head>
+      <body style="font-family:Arial;background:#f5f7fb;padding:40px">
+
+        <h1>Organizadores pendientes</h1>
+
+        ${cards || "<p>No hay organizadores pendientes.</p>"}
+
+      </body>
+      </html>
+    `);
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
