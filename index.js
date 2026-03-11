@@ -815,7 +815,7 @@ app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res)
         sold_tickets: 0,
         available_tickets: maxTickets,
         draw_date: drawDate.toISOString(),
-        status: "active",
+        status: "pending",
         slug,
       })
       .select()
@@ -2780,7 +2780,7 @@ app.get("/rifas", async (req, res) => {
     const { data, error } = await supabase
       .from("rifas")
       .select("*")
-      .eq("status", "active")
+      .eq("status", "approved")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
