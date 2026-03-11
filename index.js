@@ -1846,7 +1846,7 @@ if (!organizer.profile_id) {
         sold_tickets: 0,
         available_tickets: maxTickets,
         draw_date: drawDate.toISOString(),
-        status: "active",
+        status: "pending",
         slug,
       })
       .select()
