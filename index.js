@@ -2812,7 +2812,7 @@ app.get("/rifas", async (req, res) => {
             </div>
 
             <div style="background:#facc15;padding:12px;text-align:center;border-radius:12px;font-weight:900;">
-              Ver rifa
+              Ver campaña
             </div>
           </div>
         </a>
