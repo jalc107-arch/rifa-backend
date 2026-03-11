@@ -1564,7 +1564,35 @@ if (String(req.session.organizerId) !== String(organizerId)) {
       .select("*")
       .eq("id", organizerId)
       .single();
+let verificationBanner = "";
 
+if (organizer.verification_status !== "verified") {
+  verificationBanner = `
+    <div style="
+      background:#fff3cd;
+      color:#856404;
+      border:1px solid #ffe69c;
+      padding:14px 16px;
+      border-radius:12px;
+      margin:18px 0;
+      font-weight:600;
+    ">
+      Debes completar tu verificación antes de publicar campañas.
+      <div style="margin-top:10px;">
+        <a href="/organizers/${organizer.id}/verificacion" style="
+          display:inline-block;
+          background:#0b5ed7;
+          color:white;
+          text-decoration:none;
+          padding:10px 14px;
+          border-radius:10px;
+          font-weight:700;
+        ">Completar verificación</a>
+      </div>
+    </div>
+  `;
+}
+    
     if (organizerError || !organizer) {
       return res.status(404).send("Organizador no encontrado");
     }
@@ -1601,6 +1629,7 @@ if (String(req.session.organizerId) !== String(organizerId)) {
       <div style="max-width:1100px;margin:30px auto;padding:16px;">
         <h1 style="margin-top:0;">Panel de ${organizer.full_name}</h1>
         <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
+        ${verificationBanner}
 <div style="margin-bottom:20px;">
   <a href="/organizers/${organizer.id}/crear-rifa"
      style="background:#16a34a;color:white;padding:10px 18px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
