@@ -3093,7 +3093,10 @@ app.get("/admin/rechazar/:slug", async (req, res) => {
 
 app.get("/admin/pendientes", async (req, res) => {
   try {
-
+const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
     const { data, error } = await supabase
       .from("rifas")
       .select("*")
