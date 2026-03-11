@@ -2270,7 +2270,7 @@ ${rifa.slug ? `${base}/r/${rifa.slug}` : `${base}/rifa-publica/${rifa.id}`}`)}"
               <label>Correo electrónico (opcional)</label>
               <input type="email" name="buyer_email" />
 
-              <label>Cantidad de boletas</label>
+              <label>Cantidad de cupones</label>
               <input type="number" name="qty" min="1" max="${disponibles || 1}" value="1" required />
 
               <button type="submit" class="buy-btn">Comprar ahora</button>
