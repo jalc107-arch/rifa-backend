@@ -2258,7 +2258,7 @@ ${rifa.slug ? `${base}/r/${rifa.slug}` : `${base}/rifa-publica/${rifa.id}`}`)}"
 
         <div>
           <div class="card">
-            <h2 class="section-title">Compra tus boletas</h2>
+            <h2 class="section-title">Adquiere tus cupones de participación</h2>
 
             <form method="GET" action="${base}/comprar-directo/${rifa.id}">
               <label>Nombre completo</label>
