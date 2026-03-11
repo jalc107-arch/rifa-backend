@@ -496,7 +496,7 @@ app.get("/", async (req, res) => {
 
         <div class="step">
           <div class="step-emoji">💸</div>
-          <div class="step-title">3. Vende tus boletas</div>
+          <div class="step-title">3. Comparte tu campaña</div>
           <div class="step-text">Comparte tu link y recibe pagos seguros para crecer tus ventas.</div>
         </div>
       </div>
