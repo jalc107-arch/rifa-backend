@@ -2215,12 +2215,24 @@ res.send(`
 </head>
 <body>
   <div class="page">
-    <div class="hero">
-      <div class="badge">Campaña activa</div>
-      <div class="title">${rifa.title}</div>
-      <div class="prize">Premio: ${rifa.prize || "Premio no definido"}</div>
-    </div>
+   <div class="hero">
 
+<div style="
+display:inline-block;
+padding:6px 12px;
+border-radius:20px;
+font-size:14px;
+font-weight:600;
+background:${estadoColor};
+color:white;
+">
+${estadoTexto}
+</div>
+
+<div class="title">${rifa.title}</div>
+<div class="prize">Premio: ${rifa.prize || "Premio no definido"}</div>
+
+</div>
     <div class="content">
       <div class="content-grid">
         <div>
