@@ -826,7 +826,7 @@ app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res)
     if (error) throw error;
 
     const base = getBaseUrl(req);
-    return res.redirect(`${base}/rifa/${rifa.slug}`);
+    return res.redirect(`${base}/organizers/${req.session.organizerId}/panel`);
   } catch (e) {
     return res.status(500).send(e.message);
   }
