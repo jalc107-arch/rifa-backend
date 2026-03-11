@@ -507,7 +507,7 @@ app.get("/", async (req, res) => {
     <div class="footer-cta">
       <div class="footer-box">
         <div class="footer-title">Empieza hoy con PromoClaras</div>
-        <div class="footer-text">Crea tu primera rifa y compártela en WhatsApp, Facebook e Instagram.</div>
+        <div class="footer-text">Crea tu primera campaña y compártela en WhatsApp, Facebook e Instagram.</div>
         <a class="footer-btn" href="/organizers/register">Crear mi cuenta</a>
       </div>
     </div>
@@ -2204,7 +2204,7 @@ res.send(`
 <body>
   <div class="page">
     <div class="hero">
-      <div class="badge">Rifa activa</div>
+      <div class="badge">Campaña activa</div>
       <div class="title">${rifa.title}</div>
       <div class="prize">Premio: ${rifa.prize || "Premio no definido"}</div>
     </div>
