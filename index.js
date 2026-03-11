@@ -1964,88 +1964,281 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
     const maximos = Number(rifa.max_tickets || 0);
     const porcentaje = maximos > 0 ? Math.round((vendidos / maximos) * 100) : 0;
 
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.send(`
+   res.setHeader("Content-Type", "text/html; charset=utf-8");
+res.send(`
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${rifa.title}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #111827;
+    }
+
+    .page {
+      max-width: 520px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #f5f7fb;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0b3d91, #1d4ed8 55%, #f97316);
+      color: white;
+      padding: 18px 16px 26px 16px;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,.18);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .title {
+      font-size: 34px;
+      line-height: 1.05;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .prize {
+      font-size: 18px;
+      font-weight: 700;
+      opacity: .96;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      border: 1px solid #e5e7eb;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin: 0 0 12px 0;
+      color: #0b3d91;
+    }
+
+    .desc {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #4b5563;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 900;
+      color: #111827;
+    }
+
+    .price {
+      color: #0b3d91;
+    }
+
+    .progress-wrap {
+      margin-top: 14px;
+      margin-bottom: 10px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #4b5563;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .progress-bg {
+      width: 100%;
+      height: 14px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: ${porcentaje}%;
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      border-radius: 999px;
+    }
+
+    .notice {
+      background: #eff6ff;
+      color: #1e3a8a;
+      border: 1px solid #bfdbfe;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .wa-btn, .buy-btn {
+      display: block;
+      width: 100%;
+      text-decoration: none;
+      text-align: center;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 17px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .wa-btn {
+      background: #25D366;
+      color: white;
+      margin-bottom: 14px;
+    }
+
+    .buy-btn {
+      background: linear-gradient(180deg, #ff9a1f, #ff6a00);
+      color: white;
+      margin-top: 6px;
+      box-shadow: 0 8px 18px rgba(255,106,0,.25);
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 14px;
+      background: white;
+    }
+
+    .small-text {
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    @media (min-width: 768px) {
+      .page {
+        max-width: 820px;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: 16px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+  </style>
 </head>
-<body style="margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#111;">
-  <div style="max-width:900px;margin:30px auto;padding:16px;">
-    
-    <div style="background:#ffffff;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:hidden;">
-      
-      <div style="background:linear-gradient(135deg,#0f172a,#1e293b);color:white;padding:28px;">
-        <div style="font-size:13px;opacity:.85;margin-bottom:8px;">Rifa activa</div>
-        <h1 style="margin:0 0 10px 0;font-size:34px;">${rifa.title}</h1>
-        <div style="font-size:18px;opacity:.95;"><b>Premio:</b> ${rifa.prize || "Premio no definido"}</div>
-      </div>
+<body>
+  <div class="page">
+    <div class="hero">
+      <div class="badge">Rifa activa</div>
+      <div class="title">${rifa.title}</div>
+      <div class="prize">Premio: ${rifa.prize || "Premio no definido"}</div>
+    </div>
 
-      <div style="padding:24px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">
-          
-          <div>
-            <div style="margin-bottom:18px;">
-              <div style="font-size:15px;color:#475569;margin-bottom:6px;">Descripción</div>
-              <div style="font-size:17px;line-height:1.5;">
-                ${rifa.description || "Sin descripción"}
+    <div class="content">
+      <div class="content-grid">
+        <div>
+          <div class="card">
+            <h2 class="section-title">Detalles de la rifa</h2>
+            <div class="desc">
+              ${rifa.description || "Sin descripción disponible."}
+            </div>
+
+            <div class="stats">
+              <div class="stat">
+                <div class="stat-label">Boleta</div>
+                <div class="stat-value price">$${Number(rifa.price_per_ticket || 0).toLocaleString("es-CO")}</div>
+              </div>
+
+              <div class="stat">
+                <div class="stat-label">Vendidas</div>
+                <div class="stat-value">${vendidos}</div>
+              </div>
+
+              <div class="stat">
+                <div class="stat-label">Disponibles</div>
+                <div class="stat-value">${disponibles}</div>
+              </div>
+
+              <div class="stat">
+                <div class="stat-label">Total</div>
+                <div class="stat-value">${maximos}</div>
               </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:18px;">
-              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;">
-                <div style="font-size:13px;color:#64748b;">Valor por boleta</div>
-                <div style="font-size:28px;font-weight:800;margin-top:6px;">$${Number(rifa.price_per_ticket).toLocaleString("es-CO")}</div>
-                <div style="font-size:13px;color:#64748b;">COP</div>
+            <div class="progress-wrap">
+              <div class="progress-label">
+                <span>Progreso de ventas</span>
+                <span>${porcentaje}% vendido</span>
               </div>
-
-              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;">
-                <div style="font-size:13px;color:#64748b;">Disponibles</div>
-                <div style="font-size:28px;font-weight:800;margin-top:6px;">${disponibles}</div>
-                <div style="font-size:13px;color:#64748b;">de ${maximos}</div>
+              <div class="progress-bg">
+                <div class="progress-bar"></div>
               </div>
-            </div>
-
-            <div style="margin-bottom:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-    <div style="font-size:15px;font-weight:700;">Progreso de ventas</div>
-    <div style="font-size:14px;color:#475569;"><b>${porcentaje}%</b> vendido</div>
-  </div>
-
-  <div style="width:100%;height:16px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-bottom:12px;">
-    <div style="width:${porcentaje}%;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);transition:width .4s ease;"></div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:center;">
-    
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
-      <div style="font-size:12px;color:#64748b;">Vendidas</div>
-      <div style="font-size:22px;font-weight:800;">${vendidos}</div>
-    </div>
-
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
-      <div style="font-size:12px;color:#64748b;">Disponibles</div>
-      <div style="font-size:22px;font-weight:800;">${disponibles}</div>
-    </div>
-
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
-      <div style="font-size:12px;color:#64748b;">Total</div>
-      <div style="font-size:22px;font-weight:800;">${maximos}</div>
-    </div>
-
-  </div>
-</div>
-
-            <div style="padding:14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;color:#1e3a8a;font-size:14px;">
-              Los números <b>no se eligen manualmente</b>. Se asignan <b>automáticamente después del pago aprobado</b>.
             </div>
           </div>
-<div style="margin-top:12px;margin-bottom:14px;">
-  <a
-  href="https://wa.me/?text=${encodeURIComponent(`🎟️ Participa en la rifa: ${rifa.title}
+
+          <a
+            class="wa-btn"
+            href="https://wa.me/?text=${encodeURIComponent(`🎟️ Participa en la rifa: ${rifa.title}
 
 🏆 Premio: ${rifa.prize || "Premio"}
 🎟️ Boleta: $${Number(rifa.price_per_ticket).toLocaleString("es-CO")}
@@ -2053,81 +2246,47 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
 
 Compra aquí:
 ${rifa.slug ? `${base}/r/${rifa.slug}` : `${base}/rifa-publica/${rifa.id}`}`)}"
-  target="_blank"
-  style="display:block;width:100%;text-align:center;background:#25D366;color:white;text-decoration:none;padding:14px;border-radius:12px;font-weight:800;font-size:16px;"
->
-  Compartir por WhatsApp
-</a>
-</div>
-          <div>
-            <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.04);">
-              <h2 style="margin-top:0;margin-bottom:14px;font-size:22px;">Compra tus boletas</h2>
+            target="_blank"
+          >
+            Compartir por WhatsApp
+          </a>
 
-              <form method="GET" action="${base}/comprar-directo/${rifa.id}">
-                <div style="margin-bottom:12px;">
-                  <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">Nombre completo</label>
-                  <input
-                    type="text"
-                    name="buyer_name"
-                    required
-                    style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
-                  />
-                </div>
+          <div class="notice">
+            Los números <b>no se eligen manualmente</b>. Se asignan automáticamente después del pago aprobado.
+          </div>
+        </div>
 
-                <div style="margin-bottom:12px;">
-                  <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">Teléfono</label>
-                  <input
-                    type="text"
-                    name="buyer_phone"
-                    required
-                    style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
-                  />
-                </div>
+        <div>
+          <div class="card">
+            <h2 class="section-title">Compra tus boletas</h2>
 
-                <div style="margin-bottom:12px;">
-                  <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">Correo electrónico (opcional)</label>
-                  <input
-                    type="email"
-                    name="buyer_email"
-                    style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
-                  />
-                </div>
+            <form method="GET" action="${base}/comprar-directo/${rifa.id}">
+              <label>Nombre completo</label>
+              <input type="text" name="buyer_name" required />
 
-                <div style="margin-bottom:16px;">
-                  <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">Cantidad de boletas</label>
-                  <input
-                    type="number"
-                    name="qty"
-                    min="1"
-                    max="${disponibles || 1}"
-                    value="1"
-                    required
-                    style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
-                  />
-                </div>
+              <label>Teléfono</label>
+              <input type="text" name="buyer_phone" required />
 
-                <button
-                  type="submit"
-                  style="width:100%;background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;"
-                >
-                  Comprar ahora
-                </button>
-              </form>
+              <label>Correo electrónico (opcional)</label>
+              <input type="email" name="buyer_email" />
 
-              <div style="margin-top:14px;font-size:13px;color:#64748b;line-height:1.5;">
-                Al continuar, serás redirigido a la pasarela de pago segura de Wompi.
-              </div>
+              <label>Cantidad de boletas</label>
+              <input type="number" name="qty" min="1" max="${disponibles || 1}" value="1" required />
+
+              <button type="submit" class="buy-btn">Comprar ahora</button>
+            </form>
+
+            <div class="small-text">
+              Al continuar, serás redirigido a la pasarela de pago segura de Wompi.
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
   </div>
 </body>
 </html>
-    `);
+`);
   } catch (e) {
     return res.status(500).send(e.message);
   }
