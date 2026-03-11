@@ -7,6 +7,8 @@ const app = express();
 app.use(express.json());
 app.set("trust proxy", 1);
 
+const ADMIN_KEY = process.env.ADMIN_KEY || "promoclaras_admin_2026";
+
 app.use(session({
   secret: process.env.SESSION_SECRET || "rifasclaras_secret",
   resave: false,
