@@ -3247,6 +3247,10 @@ Nuestro equipo de soporte atenderá las solicitudes relacionadas con el funciona
 
 app.get("/admin/aprobar/:slug", async (req, res) => {
   try {
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
     const { slug } = req.params;
 
     const { error } = await supabase
@@ -3277,6 +3281,10 @@ app.get("/admin/aprobar/:slug", async (req, res) => {
 
 app.get("/admin/rechazar/:slug", async (req, res) => {
   try {
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
     const { slug } = req.params;
 
     const { error } = await supabase
@@ -3556,6 +3564,11 @@ app.post("/organizers/:organizerId/verificacion", async (req, res) => {
 app.get("/admin/organizadores", async (req, res) => {
   try {
 
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
+    
     const { data: organizers, error } = await supabase
       .from("organizers")
       .select("*")
@@ -3646,6 +3659,11 @@ app.get("/admin/organizadores", async (req, res) => {
 app.get("/admin/organizadores", async (req, res) => {
   try {
 
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
+    
     const { data: organizers, error } = await supabase
       .from("organizers")
       .select("*")
@@ -3735,7 +3753,10 @@ app.get("/admin/organizadores", async (req, res) => {
 
 app.post("/admin/organizadores/:organizerId/aprobar", async (req, res) => {
   try {
-
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
     const { organizerId } = req.params;
 
     const { error } = await supabase
@@ -3756,7 +3777,10 @@ app.post("/admin/organizadores/:organizerId/aprobar", async (req, res) => {
 
 app.post("/admin/organizadores/:organizerId/rechazar", async (req, res) => {
   try {
-
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
     const { organizerId } = req.params;
 
     const { error } = await supabase
@@ -3777,6 +3801,12 @@ app.post("/admin/organizadores/:organizerId/rechazar", async (req, res) => {
 
 app.get("/admin/solicitudes-campanas", async (req, res) => {
   try {
+
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
+    
     const { data: requests, error } = await supabase
       .from("campaign_requests")
       .select("*")
@@ -3853,6 +3883,10 @@ app.get("/admin/solicitudes-campanas", async (req, res) => {
 
 app.post("/admin/solicitudes-campanas/:requestId/aprobar", async (req, res) => {
   try {
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
     const { requestId } = req.params;
 
     const { data: requestData, error: requestError } = await supabase
@@ -3910,6 +3944,10 @@ if (existingSlug) {
 
 app.post("/admin/solicitudes-campanas/:requestId/rechazar", async (req, res) => {
   try {
+    const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
     const { requestId } = req.params;
 
     const { error } = await supabase
