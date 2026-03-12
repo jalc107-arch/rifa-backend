@@ -1337,16 +1337,19 @@ app.post("/organizers/register", express.urlencoded({ extended: true }), async (
       return res.status(400).send("Ya existe un organizador con ese correo");
     }
 
-    const { data: organizer, error } = await supabase
-      .from("organizers")
-      .insert({
-        full_name: fullName,
-        email,
-        phone: phone || null,
-        password,
-      })
-      .select()
-      .single();
+    const profileId = crypto.randomUUID();
+
+const { data: organizer, error } = await supabase
+  .from("organizers")
+  .insert({
+    full_name: fullName,
+    email,
+    phone: phone || null,
+    password,
+    profile_id: profileId,
+  })
+  .select()
+  .single();
 
     if (error) throw error;
 
