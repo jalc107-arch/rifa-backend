@@ -1709,12 +1709,18 @@ if (pendingRequestsError) throw pendingRequestsError;
         <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
         ${verificationBanner}
         ${requestsBanner}
+${organizer.verification_status === "verified" ? `
 <div style="margin-bottom:20px;">
   <a href="/organizers/${organizer.id}/crear-rifa"
      style="background:#16a34a;color:white;padding:10px 18px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
-     + Crear nueva rifa
+    + Crear nueva rifa
   </a>
 </div>
+` : `
+<div style="margin-bottom:20px;background:#fef3c7;color:#92400e;padding:12px 16px;border-radius:8px;font-weight:600;">
+  Debes ser aprobado por el administrador para crear rifas.
+</div>
+`}
         <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
           <table style="width:100%;border-collapse:collapse;min-width:800px;">
             <thead style="background:#0f172a;color:white;">
