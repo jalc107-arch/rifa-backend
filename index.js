@@ -1,5 +1,6 @@
 import express from "express";
 import crypto from "crypto";
+import multer from "multer";
 import { createClient } from "@supabase/supabase-js";
 import session from "express-session";
 
@@ -49,6 +50,9 @@ const supabase = createClient(
   SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY
 );
+const upload = multer({
+  storage: multer.memoryStorage()
+});
 
 function getBaseUrl(req) {
   const proto = req.headers["x-forwarded-proto"] || req.protocol;
@@ -3477,73 +3481,66 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
     <h1 style="margin-top:0;">Verificación de organizador</h1>
     <div style="margin-bottom:16px;color:#64748b;">Completa esta información para poder publicar campañas.</div>
 
-    <form method="POST" action="/organizers/${organizer.id}/verificacion">
-      <div style="margin-bottom:12px;">
-        <label><b>Número de cédula</b></label><br/>
-        <input type="text" name="document_number" value="${organizer.document_number || ""}" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+    <form method="POST" enctype="multipart/form-data">
+      <div style="margin-bottom:14px;">
+  <label><b>Número de cédula</b></label><br>
+  <input type="text" name="document_number" required style="width:100%;padding:10px;">
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>URL foto cédula frente</b></label><br/>
-        <input type="text" name="id_front_url" value="${organizer.id_front_url || ""}" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Foto cédula frente</b></label><br>
+  <input type="file" name="id_front_file" accept="image/*" capture="environment" required>
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>URL foto cédula reverso</b></label><br/>
-        <input type="text" name="id_back_url" value="${organizer.id_back_url || ""}" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Foto cédula reverso</b></label><br>
+  <input type="file" name="id_back_file" accept="image/*" capture="environment" required>
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>URL selfie con cédula</b></label><br/>
-        <input type="text" name="selfie_id_url" value="${organizer.selfie_id_url || ""}" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Selfie con cédula</b></label><br>
+  <input type="file" name="selfie_id_file" accept="image/*" capture="user" required>
+  <div style="font-size:12px;color:#6b7280;margin-top:6px;">
+    Debes tomar la selfie en tiempo real con la cámara frontal.
+  </div>
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>Método de pago</b></label><br/>
-        <input type="text" name="payout_method" value="${organizer.payout_method || ""}" placeholder="Banco, Nequi, Daviplata..." required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Método de pago</b></label><br>
+  <input type="text" name="payout_method" style="width:100%;padding:10px;">
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>Banco</b></label><br/>
-        <input type="text" name="bank_name" value="${organizer.bank_name || ""}"
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Banco</b></label><br>
+  <input type="text" name="bank_name" style="width:100%;padding:10px;">
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>Tipo de cuenta</b></label><br/>
-        <input type="text" name="account_type" value="${organizer.account_type || ""}" placeholder="Ahorros o corriente"
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Tipo de cuenta</b></label><br>
+  <input type="text" name="account_type" style="width:100%;padding:10px;">
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>Número de cuenta</b></label><br/>
-        <input type="text" name="account_number" value="${organizer.account_number || ""}"
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Número de cuenta</b></label><br>
+  <input type="text" name="account_number" style="width:100%;padding:10px;">
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>Titular de la cuenta</b></label><br/>
-        <input type="text" name="account_holder" value="${organizer.account_holder || ""}"
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Titular de la cuenta</b></label><br>
+  <input type="text" name="account_holder" style="width:100%;padding:10px;">
+</div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>URL prueba del premio (opcional)</b></label><br/>
-        <input type="text" name="prize_proof_url" value="${organizer.prize_proof_url || ""}"
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
-      </div>
+<div style="margin-bottom:14px;">
+  <label><b>Soporte del premio</b></label><br>
+  <input type="file" name="prize_proof_file" accept="image/*" capture="environment">
+</div>
 
-      <div style="margin-bottom:18px;">
-        <label style="display:flex;align-items:center;gap:8px;">
-          <input type="checkbox" name="terms_accepted" value="true" ${organizer.terms_accepted ? "checked" : ""} />
-          <span><b>Acepto los términos y soy responsable de la información y premios publicados.</b></span>
-        </label>
-      </div>
+<div style="margin-bottom:14px;">
+  <label>
+    <input type="checkbox" name="terms_accepted" value="true" required>
+    Acepto términos y confirmo que la información es real
+  </label>
+</div>
 
       <button type="submit"
         style="background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;">
