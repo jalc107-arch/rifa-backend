@@ -4061,13 +4061,39 @@ if (key !== ADMIN_KEY) {
      ${(organizersPending || []).map(o => `
   <div style="
     background:white;
-    padding:14px;
-    margin-bottom:10px;
-    border-radius:10px;
+    padding:16px;
+    margin-bottom:14px;
+    border-radius:12px;
     border:1px solid #e5e7eb;
   ">
-    <div style="font-weight:700;">${o.full_name}</div>
-    <div style="color:#6b7280;margin:6px 0 12px 0;">${o.email}</div>
+    <div style="font-weight:700;font-size:18px;">${o.full_name}</div>
+    <div style="color:#6b7280;margin:6px 0;">${o.email}</div>
+    <div style="margin:6px 0;"><b>Cédula:</b> ${o.document_number || "-"}</div>
+    <div style="margin:6px 0;"><b>Método de pago:</b> ${o.payout_method || "-"}</div>
+    <div style="margin:6px 0;"><b>Banco:</b> ${o.bank_name || "-"}</div>
+    <div style="margin:6px 0;"><b>Tipo de cuenta:</b> ${o.account_type || "-"}</div>
+    <div style="margin:6px 0;"><b>Número de cuenta:</b> ${o.account_number || "-"}</div>
+    <div style="margin:6px 0 12px 0;"><b>Titular:</b> ${o.account_holder || "-"}</div>
+
+    <div style="margin:10px 0;">
+      <b>Documento frente:</b>
+      ${o.id_front_url ? `<a href="${o.id_front_url}" target="_blank" style="margin-left:8px;">Ver archivo</a>` : "No cargado"}
+    </div>
+
+    <div style="margin:10px 0;">
+      <b>Documento reverso:</b>
+      ${o.id_back_url ? `<a href="${o.id_back_url}" target="_blank" style="margin-left:8px;">Ver archivo</a>` : "No cargado"}
+    </div>
+
+    <div style="margin:10px 0;">
+      <b>Selfie con cédula:</b>
+      ${o.selfie_id_url ? `<a href="${o.selfie_id_url}" target="_blank" style="margin-left:8px;">Ver archivo</a>` : "No cargado"}
+    </div>
+
+    <div style="margin:10px 0 14px 0;">
+      <b>Soporte del premio:</b>
+      ${o.prize_proof_url ? `<a href="${o.prize_proof_url}" target="_blank" style="margin-left:8px;">Ver archivo</a>` : "No cargado"}
+    </div>
 
     <form method="POST" action="/admin/organizadores/${o.id}/aprobar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;">
       <button style="
