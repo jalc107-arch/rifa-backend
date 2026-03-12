@@ -1892,6 +1892,13 @@ app.get("/organizers/:organizerId/crear-rifa", async (req, res) => {
     if (organizer.verification_status !== "verified") {
   return res.status(403).send("Tu cuenta aún no ha sido aprobada por el administrador.");
 }
+    const { data: pendingRequests, error: pendingRequestsError } = await supabase
+  .from("campaign_requests")
+  .select("*")
+  .eq("organizer_id", organizerId)
+  .eq("status", "pending");
+
+if (pendingRequestsError) throw pendingRequestsError;
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(`
 <!DOCTYPE html>
