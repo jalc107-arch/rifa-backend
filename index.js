@@ -3527,6 +3527,15 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
   <option value="scotiabank">Scotiabank Colpatria</option>
   <option value="banco_agrario">Banco Agrario</option>
   <option value="itau">Itaú</option>
+  <option value="av_villas">AV Villas</option>
+<option value="caja_social">Banco Caja Social</option>
+<option value="falabella">Banco Falabella</option>
+<option value="pichincha">Banco Pichincha</option>
+<option value="serfinanza">Banco Serfinanza</option>
+<option value="lulo">Lulo Bank</option>
+<option value="movii">Movii</option>
+<option value="nequi">Nequi</option>
+<option value="daviplata">Daviplata</option>
 </select>
 </div>
 
