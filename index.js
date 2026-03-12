@@ -1338,7 +1338,15 @@ app.post("/organizers/register", express.urlencoded({ extended: true }), async (
     }
 
     const profileId = crypto.randomUUID();
+    
+const { error: profileError } = await supabase
+  .from("profiles")
+  .insert({
+    id: profileId
+  });
 
+if (profileError) throw profileError;
+    
 const { data: organizer, error } = await supabase
   .from("organizers")
   .insert({
