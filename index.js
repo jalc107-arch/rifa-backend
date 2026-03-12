@@ -3909,7 +3909,7 @@ if (key !== ADMIN_KEY) {
 
     if (error) throw error;
 
-    return res.redirect("/admin/organizadores");
+    return res.redirect(`/admin?key=${ADMIN_KEY}`);
 
   } catch (e) {
     return res.status(500).send(e.message);
@@ -3933,7 +3933,7 @@ if (key !== ADMIN_KEY) {
 
     if (error) throw error;
 
-    return res.redirect("/admin/organizadores");
+    return res.redirect(`/admin?key=${ADMIN_KEY}`);
 
   } catch (e) {
     return res.status(500).send(e.message);
