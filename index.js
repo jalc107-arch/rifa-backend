@@ -1866,13 +1866,13 @@ if (organizerError || !organizer) {
 if (!organizer.profile_id) {
   return res.status(400).send("El organizador no tiene profile_id asociado");
 }
-    const { data: organizer } = await supabase
+   const { data: organizerVerification } = await supabase
   .from("organizers")
   .select("verification_status")
   .eq("id", organizerId)
   .single();
 
-if (!organizer || organizer.verification_status !== "verified") {
+if (!organizerVerification || organizerVerification.verification_status !== "verified") {
   return res.status(403).send("Debes completar tu verificación antes de crear campañas.");
 }
     const { data: rifa, error } = await supabase
