@@ -3507,17 +3507,36 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
 
 <div style="margin-bottom:14px;">
   <label><b>Método de pago</b></label><br>
-  <input type="text" name="payout_method" style="width:100%;padding:10px;">
+  <select name="payout_method" required style="width:100%;padding:10px;">
+  <option value="">Seleccionar método</option>
+  <option value="bank_transfer">Transferencia bancaria</option>
+  <option value="nequi">Nequi</option>
+  <option value="daviplata">Daviplata</option>
+</select>
 </div>
 
 <div style="margin-bottom:14px;">
   <label><b>Banco</b></label><br>
-  <input type="text" name="bank_name" style="width:100%;padding:10px;">
+  <select name="bank_name" style="width:100%;padding:10px;">
+  <option value="">Seleccionar banco</option>
+  <option value="bancolombia">Bancolombia</option>
+  <option value="banco_bogota">Banco de Bogotá</option>
+  <option value="davivienda">Davivienda</option>
+  <option value="bbva">BBVA</option>
+  <option value="banco_popular">Banco Popular</option>
+  <option value="scotiabank">Scotiabank Colpatria</option>
+  <option value="banco_agrario">Banco Agrario</option>
+  <option value="itau">Itaú</option>
+</select>
 </div>
 
 <div style="margin-bottom:14px;">
   <label><b>Tipo de cuenta</b></label><br>
-  <input type="text" name="account_type" style="width:100%;padding:10px;">
+  <select name="account_type" style="width:100%;padding:10px;">
+  <option value="">Tipo de cuenta</option>
+  <option value="ahorros">Ahorros</option>
+  <option value="corriente">Corriente</option>
+</select>
 </div>
 
 <div style="margin-bottom:14px;">
