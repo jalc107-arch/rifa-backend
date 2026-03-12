@@ -4014,10 +4014,42 @@ app.get("/admin", async (req, res) => {
 
       <h2>Campañas pendientes</h2>
       ${(campaignsPending || []).map(c => `
-        <div style="background:white;padding:10px;margin-bottom:8px;border-radius:8px;">
-          ${c.title} - Premio: ${c.prize}
-        </div>
-      `).join("")}
+  <div style="
+    background:white;
+    padding:14px;
+    margin-bottom:10px;
+    border-radius:10px;
+    border:1px solid #e5e7eb;
+  ">
+    <div style="font-weight:700;">${c.title}</div>
+    <div style="color:#6b7280;margin:6px 0;">Premio: ${c.prize}</div>
+    <div style="color:#6b7280;margin:0 0 12px 0;">Precio: $${Number(c.price_per_ticket || 0).toLocaleString("es-CO")}</div>
+
+    <form method="POST" action="/admin/aprobar/${c.slug}" style="display:inline;">
+      <button style="
+        background:#16a34a;
+        color:white;
+        border:none;
+        padding:10px 14px;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:700;
+      ">Aprobar</button>
+    </form>
+
+    <form method="POST" action="/admin/rechazar/${c.slug}" style="display:inline;margin-left:8px;">
+      <button style="
+        background:#dc2626;
+        color:white;
+        border:none;
+        padding:10px 14px;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:700;
+      ">Rechazar</button>
+    </form>
+  </div>
+`).join("")}
 
       <h2>Solicitudes de tercera campaña</h2>
       ${(campaignRequests || []).map(r => `
