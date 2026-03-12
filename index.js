@@ -1634,7 +1634,7 @@ if (!organizer.profile_id) {
 }
     
 let verificationBanner = "";
-
+let requestsBanner = "";
 if (organizer.verification_status !== "verified") {
   verificationBanner = `
     <div style="
