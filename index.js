@@ -4054,7 +4054,7 @@ if (key !== ADMIN_KEY) {
 `).join("")}
 
       <h2>Campañas pendientes</h2>
-      ${(campaignsPending || []).map(c => `
+${(campaignsPending || []).map(c => `
   <div style="
     background:white;
     padding:14px;
@@ -4063,35 +4063,40 @@ if (key !== ADMIN_KEY) {
     border:1px solid #e5e7eb;
   ">
     <div style="font-weight:700;">${c.title}</div>
-    <div style="color:#6b7280;margin:6px 0;">Premio: ${c.prize}</div>
-    <div style="color:#6b7280;margin:0 0 12px 0;">Precio: $${Number(c.price_per_ticket || 0).toLocaleString("es-CO")}</div>
+
+    <div style="color:#6b7280;margin:6px 0;">
+      Premio: ${c.prize}
+    </div>
+
+    <div style="color:#6b7280;margin:0 0 12px 0;">
+      Precio: $${Number(c.price_per_ticket || 0).toLocaleString("es-CO")}
+    </div>
 
     <a href="/admin/aprobar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="
-display:inline-block;
-background:#16a34a;
-color:white;
-padding:10px 14px;
-border-radius:8px;
-cursor:pointer;
-font-weight:700;
-text-decoration:none;
-">
-Aprobar
-</a>
+      display:inline-block;
+      background:#16a34a;
+      color:white;
+      padding:10px 14px;
+      border-radius:8px;
+      font-weight:700;
+      text-decoration:none;
+    ">
+      Aprobar
+    </a>
 
     <a href="/admin/rechazar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="
-display:inline-block;
-margin-left:8px;
-background:#dc2626;
-color:white;
-padding:10px 14px;
-border-radius:8px;
-cursor:pointer;
-font-weight:700;
-text-decoration:none;
-">
-Rechazar
-</a>
+      display:inline-block;
+      margin-left:8px;
+      background:#dc2626;
+      color:white;
+      padding:10px 14px;
+      border-radius:8px;
+      font-weight:700;
+      text-decoration:none;
+    ">
+      Rechazar
+    </a>
+
   </div>
 `).join("")}
 
