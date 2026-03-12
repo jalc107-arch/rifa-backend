@@ -1764,11 +1764,12 @@ if (pendingRequestsError) throw pendingRequestsError;
     <body style="margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#111;">
       <div style="max-width:1100px;margin:30px auto;padding:16px;">
         <h1 style="margin-top:0;">Panel de ${organizer.full_name}</h1>
+        ${organizer.verification_status === "verified" ? 
+`<div style="color:green;font-weight:bold;margin-top:8px;">
+✔ Organizador verificado
+</div>` : ""}
         <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
-        <h1>Panel de ${organizer.full_name}</h1>
-
-Correo: ${organizer.email}
-
+        
 <div style="margin-top:10px;font-size:14px;color:#555;">
 <b>Rifas realizadas:</b> ${organizer.raffles_created}<br>
 <b>Premios entregados:</b> ${organizer.prizes_delivered}<br>
