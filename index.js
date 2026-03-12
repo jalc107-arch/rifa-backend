@@ -1894,6 +1894,42 @@ if (!organizer.profile_id) {
 if (!organizerVerification || organizerVerification.verification_status !== "verified") {
   return res.status(403).send("Debes completar tu verificación antes de crear campañas.");
 }
+    const now = new Date();
+const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+
+const { data: monthlyCampaigns, error: monthlyError } = await supabase
+  .from("rifas")
+  .select("id")
+  .eq("owner_id", ownerId)
+  .gte("created_at", monthStart)
+  .lt("created_at", nextMonthStart);
+
+if (monthlyError) throw monthlyError;
+
+const monthlyCount = (monthlyCampaigns || []).length;
+
+if (monthlyCount >= 2) {
+  const { error: requestError } = await supabase
+    .from("campaign_requests")
+    .insert({
+      organizer_id: organizerId,
+      requested_title: title,
+      requested_prize: prize,
+      requested_description: description,
+      requested_modality: String(modality),
+      requested_price_per_ticket: pricePerTicket,
+      requested_max_tickets: maxTickets,
+      requested_draw_date: drawDate.toISOString(),
+      requested_rules_text: req.body.rules_text || null,
+      requested_prize_value: req.body.prize_value ? Number(req.body.prize_value) : null,
+      status: "pending"
+    });
+
+  if (requestError) throw requestError;
+
+  return res.status(400).send("Ya alcanzaste el límite de 2 campañas en este mes. Tu solicitud fue enviada al administrador para revisión.");
+}
     const { data: rifa, error } = await supabase
       .from("rifas")
       .insert({
