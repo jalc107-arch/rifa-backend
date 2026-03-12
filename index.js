@@ -3763,6 +3763,68 @@ app.get("/admin/solicitudes-campanas", async (req, res) => {
   }
 });
 
+app.post("/admin/solicitudes-campanas/:requestId/aprobar", async (req, res) => {
+  try {
+    const { requestId } = req.params;
+
+    const { data: requestData, error: requestError } = await supabase
+      .from("campaign_requests")
+      .select("*")
+      .eq("id", requestId)
+      .single();
+
+    if (requestError || !requestData) {
+      return res.status(404).send("Solicitud no encontrada");
+    }
+
+    const { error: insertError } = await supabase
+      .from("rifas")
+      .insert({
+        owner_id: requestData.organizer_id,
+        title: requestData.requested_title,
+        prize: requestData.requested_prize,
+        description: requestData.requested_description,
+        modality: requestData.requested_modality,
+        price_per_ticket: requestData.requested_price_per_ticket,
+        max_tickets: requestData.requested_max_tickets,
+        sold_tickets: 0,
+        available_tickets: requestData.requested_max_tickets,
+        draw_date: requestData.requested_draw_date,
+        status: "pending"
+      });
+
+    if (insertError) throw insertError;
+
+    const { error: updateError } = await supabase
+      .from("campaign_requests")
+      .update({ status: "approved" })
+      .eq("id", requestId);
+
+    if (updateError) throw updateError;
+
+    return res.redirect("/admin/solicitudes-campanas");
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
+app.post("/admin/solicitudes-campanas/:requestId/rechazar", async (req, res) => {
+  try {
+    const { requestId } = req.params;
+
+    const { error } = await supabase
+      .from("campaign_requests")
+      .update({ status: "rejected" })
+      .eq("id", requestId);
+
+    if (error) throw error;
+
+    return res.redirect("/admin/solicitudes-campanas");
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
