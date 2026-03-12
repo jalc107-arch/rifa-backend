@@ -805,7 +805,26 @@ app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res)
     if (existingSlug) {
       slug = `${slug}-${Date.now().toString().slice(-6)}`;
     }
+if (!title || title.trim().length < 5) {
+  return res.status(400).send("El título debe tener al menos 5 caracteres.");
+}
 
+if (!description || description.trim().length < 20) {
+  return res.status(400).send("La descripción debe tener al menos 20 caracteres.");
+}
+
+if (!prize || prize.trim().length < 3) {
+  return res.status(400).send("Debes indicar el premio.");
+}
+
+if (!pricePerTicket || Number(pricePerTicket) <= 0) {
+  return res.status(400).send("El valor del cupón debe ser mayor a 0.");
+}
+
+if (!maxTickets || Number(maxTickets) <= 0) {
+  return res.status(400).send("La cantidad de cupones debe ser válida.");
+}
+    
     const { data: rifa, error } = await supabase
       .from("rifas")
       .insert({
