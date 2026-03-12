@@ -613,9 +613,10 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
       .single();
 
     if (rifaError || !rifa) {
-      return res.status(404).send("Rifa no existe");
-    }
-if (!rifa || rifa.status !== "approved") {
+  return res.status(404).send("Rifa no existe");
+}
+
+if (rifa.status !== "approved") {
   return res.status(400).send("Esta campaña aún no está aprobada para recibir compras.");
 }
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
