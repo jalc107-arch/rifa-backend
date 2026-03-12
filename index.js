@@ -4052,11 +4052,44 @@ app.get("/admin", async (req, res) => {
 `).join("")}
 
       <h2>Solicitudes de tercera campaña</h2>
-      ${(campaignRequests || []).map(r => `
-        <div style="background:white;padding:10px;margin-bottom:8px;border-radius:8px;">
-          ${r.requested_title} - Premio: ${r.requested_prize}
-        </div>
-      `).join("")}
+     ${(campaignRequests || []).map(r => `
+  <div style="
+    background:white;
+    padding:14px;
+    margin-bottom:10px;
+    border-radius:10px;
+    border:1px solid #e5e7eb;
+  ">
+    <div style="font-weight:700;">${r.requested_title}</div>
+    <div style="color:#6b7280;margin:6px 0;">Premio: ${r.requested_prize}</div>
+    <div style="color:#6b7280;margin:6px 0;">Valor cupón: $${Number(r.requested_price_per_ticket || 0).toLocaleString("es-CO")}</div>
+    <div style="color:#6b7280;margin:0 0 12px 0;">Cantidad: ${r.requested_max_tickets || 0}</div>
+
+    <form method="POST" action="/admin/solicitudes-campanas/${r.id}/aprobar" style="display:inline;">
+      <button style="
+        background:#16a34a;
+        color:white;
+        border:none;
+        padding:10px 14px;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:700;
+      ">Aprobar</button>
+    </form>
+
+    <form method="POST" action="/admin/solicitudes-campanas/${r.id}/rechazar" style="display:inline;margin-left:8px;">
+      <button style="
+        background:#dc2626;
+        color:white;
+        border:none;
+        padding:10px 14px;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:700;
+      ">Rechazar</button>
+    </form>
+  </div>
+`).join("")}
 
     </body>
     </html>
