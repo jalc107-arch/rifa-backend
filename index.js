@@ -1624,6 +1624,15 @@ if (organizer.verification_status !== "verified") {
 
     if (rifasError) throw rifasError;
 
+const { data: pendingRequests, error: pendingRequestsError } = await supabase
+  .from("campaign_requests")
+  .select("*")
+  .eq("organizer_id", organizerId)
+  .eq("status", "pending")
+  .order("created_at", { ascending: false });
+
+if (pendingRequestsError) throw pendingRequestsError;
+    
     const rows = (rifas || []).map((r) => `
       <tr>
         <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.title || ""}</td>
@@ -1649,6 +1658,7 @@ if (organizer.verification_status !== "verified") {
         <h1 style="margin-top:0;">Panel de ${organizer.full_name}</h1>
         <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
         ${verificationBanner}
+        ${requestsBanner}
 <div style="margin-bottom:20px;">
   <a href="/organizers/${organizer.id}/crear-rifa"
      style="background:#16a34a;color:white;padding:10px 18px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
@@ -1894,6 +1904,24 @@ if (!organizer.profile_id) {
 if (!organizerVerification || organizerVerification.verification_status !== "verified") {
   return res.status(403).send("Debes completar tu verificación antes de crear campañas.");
 }
+let requestsBanner = "";
+
+if ((pendingRequests || []).length > 0) {
+  requestsBanner = `
+    <div style="
+      background:#e0f2fe;
+      color:#075985;
+      border:1px solid #bae6fd;
+      padding:14px 16px;
+      border-radius:12px;
+      margin:18px 0;
+      font-weight:600;
+    ">
+      Tienes ${(pendingRequests || []).length} solicitud(es) extra de campaña en revisión por el administrador.
+    </div>
+  `;
+}
+    
     const now = new Date();
 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
