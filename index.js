@@ -3832,7 +3832,7 @@ if (key !== ADMIN_KEY) {
         <div><b>Fecha sorteo:</b> ${r.requested_draw_date || "-"}</div>
 
         <div style="margin-top:14px;">
-          <form method="POST" action="/admin/solicitudes-campanas/${r.id}/aprobar" style="display:inline;">
+          <form method="POST" action="/admin/solicitudes-campanas/${r.id}/aprobar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;">
             <button style="
               background:#16a34a;
               color:white;
@@ -3844,7 +3844,7 @@ if (key !== ADMIN_KEY) {
             ">Aprobar</button>
           </form>
 
-          <form method="POST" action="/admin/solicitudes-campanas/${r.id}/rechazar" style="display:inline;margin-left:8px;">
+          <form method="POST" action="/admin/solicitudes-campanas/${r.id}/rechazar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;margin-left:8px;">
             <button style="
               background:#dc2626;
               color:white;
