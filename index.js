@@ -594,7 +594,10 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
     const buyerPhone = (req.query.buyer_phone || "").toString().trim();
     const buyerEmail = (req.query.buyer_email || "").toString().trim();
     const qty = Number(req.query.qty || 1);
-
+    if (qty > 20) {
+  return res.status(400).send("Máximo 20 cupones por compra.");
+}
+    
     if (!buyerName || !buyerPhone) {
       return res.status(400).send("Faltan buyer_name o buyer_phone");
     }
@@ -614,6 +617,32 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
     }
 if (!rifa || rifa.status !== "approved") {
   return res.status(400).send("Esta campaña aún no está aprobada para recibir compras.");
+}
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+
+const { data: recentOrders, error: recentOrdersError } = await supabase
+  .from("orders")
+  .select("id, created_at")
+  .eq("buyer_phone", buyerPhone)
+  .gte("created_at", tenMinutesAgo);
+
+if (recentOrdersError) throw recentOrdersError;
+
+if ((recentOrders || []).length >= 3) {
+  return res.status(429).send("Has realizado demasiados intentos de compra en pocos minutos. Intenta nuevamente más tarde.");
+}
+    const { data: buyerOrders, error: buyerOrdersError } = await supabase
+  .from("orders")
+  .select("qty")
+  .eq("rifa_id", rifaId)
+  .eq("buyer_phone", buyerPhone);
+
+if (buyerOrdersError) throw buyerOrdersError;
+
+const totalBoughtByPhone = (buyerOrders || []).reduce((acc, o) => acc + Number(o.qty || 0), 0);
+
+if (totalBoughtByPhone + qty > 50) {
+  return res.status(400).send("No puedes superar 50 cupones en esta campaña con el mismo número.");
 }
     const total = qty * Number(rifa.price_per_ticket);
     const commission = total * 0.03;
