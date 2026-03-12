@@ -1765,6 +1765,19 @@ if (pendingRequestsError) throw pendingRequestsError;
       <div style="max-width:1100px;margin:30px auto;padding:16px;">
         <h1 style="margin-top:0;">Panel de ${organizer.full_name}</h1>
         <div style="margin-bottom:18px;color:#64748b;">Correo: ${organizer.email}</div>
+        <h1>Panel de ${organizer.full_name}</h1>
+
+Correo: ${organizer.email}
+
+<div style="margin-top:10px;font-size:14px;color:#555;">
+<b>Rifas realizadas:</b> ${organizer.raffles_created}<br>
+<b>Premios entregados:</b> ${organizer.prizes_delivered}<br>
+<b>Reputación:</b> ${
+organizer.raffles_created === 0
+? "100%"
+: Math.round((organizer.prizes_delivered / organizer.raffles_created) * 100) + "%"
+}
+</div>
         ${verificationBanner}
         ${requestsBanner}
 ${organizer.verification_status === "verified" ? `
