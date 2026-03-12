@@ -1817,7 +1817,9 @@ app.get("/organizers/:organizerId/crear-rifa", async (req, res) => {
     if (error || !organizer) {
       return res.status(404).send("Organizador no encontrado");
     }
-
+    if (organizer.verification_status !== "verified") {
+  return res.status(403).send("Tu cuenta aún no ha sido aprobada por el administrador.");
+}
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(`
 <!DOCTYPE html>
@@ -1904,6 +1906,20 @@ app.post("/organizers/:organizerId/crear-rifa", express.urlencoded({ extended: t
     const pricePerTicket = Number(req.body.price_per_ticket || 0);
     const maxTickets = Number(req.body.max_tickets || 0);
     const drawDateRaw = String(req.body.draw_date || "").trim();
+    
+    const { data: organizer, error: organizerError } = await supabase
+  .from("organizers")
+  .select("*")
+  .eq("id", organizerId)
+  .single();
+
+if (organizerError || !organizer) {
+  return res.status(404).send("Organizador no encontrado");
+}
+
+if (organizer.verification_status !== "verified") {
+  return res.status(403).send("Tu cuenta aún no ha sido aprobada por el administrador.");
+}
 
     if (!title || !prize || !drawDateRaw) {
       return res.status(400).send("Faltan campos obligatorios");
