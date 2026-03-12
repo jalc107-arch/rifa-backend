@@ -4066,29 +4066,32 @@ if (key !== ADMIN_KEY) {
     <div style="color:#6b7280;margin:6px 0;">Premio: ${c.prize}</div>
     <div style="color:#6b7280;margin:0 0 12px 0;">Precio: $${Number(c.price_per_ticket || 0).toLocaleString("es-CO")}</div>
 
-    <form method="POST" action="/admin/aprobar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;">
-      <button style="
-        background:#16a34a;
-        color:white;
-        border:none;
-        padding:10px 14px;
-        border-radius:8px;
-        cursor:pointer;
-        font-weight:700;
-      ">Aprobar</button>
-    </form>
+    <a href="/admin/aprobar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="
+display:inline-block;
+background:#16a34a;
+color:white;
+padding:10px 14px;
+border-radius:8px;
+cursor:pointer;
+font-weight:700;
+text-decoration:none;
+">
+Aprobar
+</a>
 
-    <form method="POST" action="/admin/rechazar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;margin-left:8px;">
-      <button style="
-        background:#dc2626;
-        color:white;
-        border:none;
-        padding:10px 14px;
-        border-radius:8px;
-        cursor:pointer;
-        font-weight:700;
-      ">Rechazar</button>
-    </form>
+    <a href="/admin/rechazar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="
+display:inline-block;
+margin-left:8px;
+background:#dc2626;
+color:white;
+padding:10px 14px;
+border-radius:8px;
+cursor:pointer;
+font-weight:700;
+text-decoration:none;
+">
+Rechazar
+</a>
   </div>
 `).join("")}
 
