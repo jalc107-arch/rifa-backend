@@ -3975,11 +3975,42 @@ app.get("/admin", async (req, res) => {
       </div>
 
       <h2>Organizadores por aprobar</h2>
-      ${(organizersPending || []).map(o => `
-        <div style="background:white;padding:10px;margin-bottom:8px;border-radius:8px;">
-          ${o.full_name} - ${o.email}
-        </div>
-      `).join("")}
+     ${(organizersPending || []).map(o => `
+  <div style="
+    background:white;
+    padding:14px;
+    margin-bottom:10px;
+    border-radius:10px;
+    border:1px solid #e5e7eb;
+  ">
+    <div style="font-weight:700;">${o.full_name}</div>
+    <div style="color:#6b7280;margin:6px 0 12px 0;">${o.email}</div>
+
+    <form method="POST" action="/admin/organizadores/${o.id}/aprobar" style="display:inline;">
+      <button style="
+        background:#16a34a;
+        color:white;
+        border:none;
+        padding:10px 14px;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:700;
+      ">Aprobar</button>
+    </form>
+
+    <form method="POST" action="/admin/organizadores/${o.id}/rechazar" style="display:inline;margin-left:8px;">
+      <button style="
+        background:#dc2626;
+        color:white;
+        border:none;
+        padding:10px 14px;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:700;
+      ">Rechazar</button>
+    </form>
+  </div>
+`).join("")}
 
       <h2>Campañas pendientes</h2>
       ${(campaignsPending || []).map(c => `
