@@ -3687,6 +3687,82 @@ app.post("/admin/organizadores/:organizerId/rechazar", async (req, res) => {
   }
 });
 
+app.get("/admin/solicitudes-campanas", async (req, res) => {
+  try {
+    const { data: requests, error } = await supabase
+      .from("campaign_requests")
+      .select("*")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const cards = (requests || []).map(r => `
+      <div style="
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+        padding:18px;
+        margin-bottom:16px;
+      ">
+        <h3 style="margin-top:0;">${r.requested_title || "Solicitud sin título"}</h3>
+        <div><b>Premio:</b> ${r.requested_prize || "-"}</div>
+        <div><b>Descripción:</b> ${r.requested_description || "-"}</div>
+        <div><b>Modalidad:</b> ${r.requested_modality || "-"}</div>
+        <div><b>Valor cupón:</b> $${Number(r.requested_price_per_ticket || 0).toLocaleString("es-CO")}</div>
+        <div><b>Cantidad:</b> ${r.requested_max_tickets || 0}</div>
+        <div><b>Fecha sorteo:</b> ${r.requested_draw_date || "-"}</div>
+
+        <div style="margin-top:14px;">
+          <form method="POST" action="/admin/solicitudes-campanas/${r.id}/aprobar" style="display:inline;">
+            <button style="
+              background:#16a34a;
+              color:white;
+              border:none;
+              padding:10px 14px;
+              border-radius:10px;
+              cursor:pointer;
+              font-weight:700;
+            ">Aprobar</button>
+          </form>
+
+          <form method="POST" action="/admin/solicitudes-campanas/${r.id}/rechazar" style="display:inline;margin-left:8px;">
+            <button style="
+              background:#dc2626;
+              color:white;
+              border:none;
+              padding:10px 14px;
+              border-radius:10px;
+              cursor:pointer;
+              font-weight:700;
+            ">Rechazar</button>
+          </form>
+        </div>
+      </div>
+    `).join("");
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Solicitudes de campañas</title>
+      </head>
+      <body style="font-family:Arial,sans-serif;background:#f5f7fb;padding:40px;">
+        <div style="max-width:900px;margin:0 auto;">
+          <h1>Solicitudes extra de campañas</h1>
+          ${cards || "<p>No hay solicitudes pendientes.</p>"}
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
