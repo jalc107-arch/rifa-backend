@@ -4066,7 +4066,7 @@ if (key !== ADMIN_KEY) {
     <div style="color:#6b7280;margin:6px 0;">Premio: ${c.prize}</div>
     <div style="color:#6b7280;margin:0 0 12px 0;">Precio: $${Number(c.price_per_ticket || 0).toLocaleString("es-CO")}</div>
 
-    <form method="POST" action="/admin/aprobar/${c.slug}" style="display:inline;">
+    <form method="POST" action="/admin/aprobar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;">
       <button style="
         background:#16a34a;
         color:white;
@@ -4078,7 +4078,7 @@ if (key !== ADMIN_KEY) {
       ">Aprobar</button>
     </form>
 
-    <form method="POST" action="/admin/rechazar/${c.slug}" style="display:inline;margin-left:8px;">
+    <form method="POST" action="/admin/rechazar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;margin-left:8px;">
       <button style="
         background:#dc2626;
         color:white;
