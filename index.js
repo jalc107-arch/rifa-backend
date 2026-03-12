@@ -3927,7 +3927,10 @@ app.post("/admin/solicitudes-campanas/:requestId/rechazar", async (req, res) => 
 
 app.get("/admin", async (req, res) => {
   try {
-
+const key = String(req.query.key || "");
+if (key !== ADMIN_KEY) {
+  return res.status(403).send("Acceso no autorizado");
+}
     const { data: organizersPending } = await supabase
       .from("organizers")
       .select("*")
