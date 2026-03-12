@@ -3925,6 +3925,85 @@ app.post("/admin/solicitudes-campanas/:requestId/rechazar", async (req, res) => 
   }
 });
 
+app.get("/admin", async (req, res) => {
+  try {
+
+    const { data: organizersPending } = await supabase
+      .from("organizers")
+      .select("*")
+      .neq("verification_status", "verified");
+
+    const { data: campaignsPending } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("status", "pending");
+
+    const { data: campaignRequests } = await supabase
+      .from("campaign_requests")
+      .select("*")
+      .eq("status", "pending");
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+
+    res.send(`
+    <html>
+    <head>
+      <title>Panel Administrador</title>
+    </head>
+
+    <body style="font-family:Arial;background:#f5f7fb;padding:40px;">
+
+      <h1>Panel Administrador</h1>
+
+      <div style="display:flex;gap:20px;margin-bottom:30px;">
+
+        <div style="background:white;padding:20px;border-radius:10px;">
+          <h3>Organizadores pendientes</h3>
+          <h2>${(organizersPending || []).length}</h2>
+        </div>
+
+        <div style="background:white;padding:20px;border-radius:10px;">
+          <h3>Campañas pendientes</h3>
+          <h2>${(campaignsPending || []).length}</h2>
+        </div>
+
+        <div style="background:white;padding:20px;border-radius:10px;">
+          <h3>Solicitudes extra</h3>
+          <h2>${(campaignRequests || []).length}</h2>
+        </div>
+
+      </div>
+
+      <h2>Organizadores por aprobar</h2>
+      ${(organizersPending || []).map(o => `
+        <div style="background:white;padding:10px;margin-bottom:8px;border-radius:8px;">
+          ${o.full_name} - ${o.email}
+        </div>
+      `).join("")}
+
+      <h2>Campañas pendientes</h2>
+      ${(campaignsPending || []).map(c => `
+        <div style="background:white;padding:10px;margin-bottom:8px;border-radius:8px;">
+          ${c.title} - Premio: ${c.prize}
+        </div>
+      `).join("")}
+
+      <h2>Solicitudes de tercera campaña</h2>
+      ${(campaignRequests || []).map(r => `
+        <div style="background:white;padding:10px;margin-bottom:8px;border-radius:8px;">
+          ${r.requested_title} - Premio: ${r.requested_prize}
+        </div>
+      `).join("")}
+
+    </body>
+    </html>
+    `);
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
