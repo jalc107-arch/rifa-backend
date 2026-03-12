@@ -3777,6 +3777,18 @@ app.post("/admin/solicitudes-campanas/:requestId/aprobar", async (req, res) => {
       return res.status(404).send("Solicitud no encontrada");
     }
 
+let slug = slugify(requestData.requested_title || "campana");
+if (!slug) slug = `campana-${Date.now()}`;
+
+const { data: existingSlug } = await supabase
+  .from("rifas")
+  .select("id, slug")
+  .eq("slug", slug)
+  .maybeSingle();
+
+if (existingSlug) {
+  slug = `${slug}-${Date.now().toString().slice(-6)}`;
+}
     const { error: insertError } = await supabase
       .from("rifas")
       .insert({
