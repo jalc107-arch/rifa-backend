@@ -1639,7 +1639,46 @@ if (!organizer.profile_id) {
     
 let verificationBanner = "";
 let requestsBanner = "";
-if (organizer.verification_status !== "verified") {
+if (organizer.verification_status === "pending") {
+  verificationBanner = `
+    <div style="
+      background:#fff3cd;
+      color:#856404;
+      border:1px solid #ffe69c;
+      padding:14px 16px;
+      border-radius:12px;
+      margin:18px 0;
+      font-weight:600;
+    ">
+      Tu cuenta está en verificación. Nuestro equipo revisará tus documentos pronto.
+    </div>
+  `;
+} else if (organizer.verification_status === "rejected") {
+  verificationBanner = `
+    <div style="
+      background:#f8d7da;
+      color:#842029;
+      border:1px solid #f5c2c7;
+      padding:14px 16px;
+      border-radius:12px;
+      margin:18px 0;
+      font-weight:600;
+    ">
+      Tu verificación fue rechazada. Debes cargar nuevamente tus documentos.
+      <div style="margin-top:10px;">
+        <a href="/organizers/${organizer.id}/verificacion" style="
+          display:inline-block;
+          background:#dc3545;
+          color:white;
+          text-decoration:none;
+          padding:10px 14px;
+          border-radius:10px;
+          font-weight:700;
+        ">Subir documentos otra vez</a>
+      </div>
+    </div>
+  `;
+} else if (organizer.verification_status !== "verified") {
   verificationBanner = `
     <div style="
       background:#fff3cd;
