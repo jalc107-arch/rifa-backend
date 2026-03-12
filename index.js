@@ -4027,7 +4027,7 @@ if (key !== ADMIN_KEY) {
     <div style="font-weight:700;">${o.full_name}</div>
     <div style="color:#6b7280;margin:6px 0 12px 0;">${o.email}</div>
 
-    <form method="POST" action="/admin/organizadores/${o.id}/aprobar" style="display:inline;">
+    <form method="POST" action="/admin/organizadores/${o.id}/aprobar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;">
       <button style="
         background:#16a34a;
         color:white;
@@ -4039,7 +4039,7 @@ if (key !== ADMIN_KEY) {
       ">Aprobar</button>
     </form>
 
-    <form method="POST" action="/admin/organizadores/${o.id}/rechazar" style="display:inline;margin-left:8px;">
+    <form method="POST" action="/admin/organizadores/${o.id}/rechazar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;margin-left:8px;">
       <button style="
         background:#dc2626;
         color:white;
