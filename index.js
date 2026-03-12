@@ -1907,17 +1907,17 @@ app.post("/organizers/:organizerId/crear-rifa", express.urlencoded({ extended: t
     const maxTickets = Number(req.body.max_tickets || 0);
     const drawDateRaw = String(req.body.draw_date || "").trim();
     
-    const { data: organizer, error: organizerError } = await supabase
+    const { data: organizerCheck, error: organizerCheckError } = await supabase
   .from("organizers")
   .select("*")
   .eq("id", organizerId)
   .single();
 
-if (organizerError || !organizer) {
+if (organizerCheckError || !organizerCheck) {
   return res.status(404).send("Organizador no encontrado");
 }
 
-if (organizer.verification_status !== "verified") {
+if (organizerCheck.verification_status !== "verified") {
   return res.status(403).send("Tu cuenta aún no ha sido aprobada por el administrador.");
 }
 
