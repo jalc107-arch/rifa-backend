@@ -1613,6 +1613,15 @@ if (String(req.session.organizerId) !== String(organizerId)) {
       .select("*")
       .eq("id", organizerId)
       .single();
+
+    if (organizerError || !organizer) {
+  return res.status(404).send("Organizador no encontrado");
+}
+
+if (!organizer.profile_id) {
+  return res.status(400).send("El organizador no tiene profile_id asociado");
+}
+    
 let verificationBanner = "";
 
 if (organizer.verification_status !== "verified") {
