@@ -1906,11 +1906,11 @@ if (pendingRequestsError) throw pendingRequestsError;
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Crear rifa</title>
+  <title>Crear campaña</title>
 </head>
 <body style="margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111;">
   <div style="max-width:760px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);">
-    <h1 style="margin-top:0;">Crear rifa</h1>
+    <h1 style="margin-top:0;">Crear campaña</h1>
     <div style="margin-bottom:16px;color:#64748b;">Organizador: ${organizer.full_name}</div>
 
     <form method="POST" action="/organizers/${organizer.id}/crear-rifa">
