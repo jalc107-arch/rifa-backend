@@ -3556,49 +3556,100 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
   }
 });
 
-app.post("/organizers/:organizerId/verificacion", async (req, res) => {
-  try {
-    const { organizerId } = req.params;
+app.post(
+  "/organizers/:organizerId/verificacion",
+  upload.fields([
+    { name: "id_front_file", maxCount: 1 },
+    { name: "id_back_file", maxCount: 1 },
+    { name: "selfie_id_file", maxCount: 1 },
+    { name: "prize_proof_file", maxCount: 1 }
+  ]),
+  async (req, res) => {
+    try {
+      const { organizerId } = req.params;
 
-    const {
-      document_number,
-      id_front_url,
-      id_back_url,
-      selfie_id_url,
-      payout_method,
-      bank_name,
-      account_type,
-      account_number,
-      account_holder,
-      prize_proof_url,
-      terms_accepted
-    } = req.body;
-
-    const { error } = await supabase
-      .from("organizers")
-      .update({
+      const {
         document_number,
-        id_front_url,
-        id_back_url,
-        selfie_id_url,
         payout_method,
         bank_name,
         account_type,
         account_number,
         account_holder,
-        prize_proof_url,
-        terms_accepted: terms_accepted === "true",
-        verification_status: "pending"
-      })
-      .eq("id", organizerId);
+        terms_accepted
+      } = req.body;
 
-    if (error) throw error;
+      const frontFile = req.files?.id_front_file?.[0];
+      const backFile = req.files?.id_back_file?.[0];
+      const selfieFile = req.files?.selfie_id_file?.[0];
+      const prizeFile = req.files?.prize_proof_file?.[0];
 
-    return res.redirect(`/organizers/${organizerId}/panel`);
-  } catch (e) {
-    return res.status(500).send(e.message);
+      if (!document_number || !frontFile || !backFile || !selfieFile) {
+        return res.status(400).send("Faltan documentos obligatorios");
+      }
+
+      const { data: organizer, error: organizerError } = await supabase
+        .from("organizers")
+        .select("*")
+        .eq("id", organizerId)
+        .single();
+
+      if (organizerError || !organizer) {
+        return res.status(404).send("Organizador no encontrado");
+      }
+
+      const uploadOne = async (file, folder) => {
+        if (!file) return null;
+
+        const ext = (file.originalname || "jpg").split(".").pop() || "jpg";
+        const filePath = `organizers/${organizerId}/${folder}-${Date.now()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("verification-docs")
+          .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            upsert: true
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from("verification-docs")
+          .getPublicUrl(filePath);
+
+        return data.publicUrl;
+      };
+
+      const id_front_url = await uploadOne(frontFile, "id-front");
+      const id_back_url = await uploadOne(backFile, "id-back");
+      const selfie_id_url = await uploadOne(selfieFile, "selfie-id");
+      const prize_proof_url = await uploadOne(prizeFile, "prize-proof");
+
+      const { error } = await supabase
+        .from("organizers")
+        .update({
+          document_number,
+          id_front_url,
+          id_back_url,
+          selfie_id_url,
+          payout_method: payout_method || null,
+          bank_name: bank_name || null,
+          account_type: account_type || null,
+          account_number: account_number || null,
+          account_holder: account_holder || null,
+          prize_proof_url,
+          terms_accepted: terms_accepted === "true" || terms_accepted === "on",
+          verification_status: "pending"
+        })
+        .eq("id", organizerId);
+
+      if (error) throw error;
+
+      return res.redirect(`/organizers/${organizerId}/panel`);
+    } catch (e) {
+      return res.status(500).send(e.message);
+    }
   }
-});
+);
 
 app.get("/admin/organizadores", async (req, res) => {
   try {
