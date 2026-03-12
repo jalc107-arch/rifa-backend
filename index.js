@@ -1928,7 +1928,37 @@ if (monthlyCount >= 2) {
 
   if (requestError) throw requestError;
 
-  return res.status(400).send("Ya alcanzaste el límite de 2 campañas en este mes. Tu solicitud fue enviada al administrador para revisión.");
+ return res.send(`
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Solicitud enviada</title>
+  </head>
+  <body style="font-family:Arial,sans-serif;background:#f5f7fb;padding:40px;">
+    <div style="max-width:700px;margin:0 auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);text-align:center;">
+      <h1 style="color:#0b5ed7;margin-top:0;">Solicitud enviada</h1>
+      <p style="font-size:17px;color:#374151;line-height:1.6;">
+        Ya alcanzaste el límite de <b>2 campañas en este mes</b>.
+      </p>
+      <p style="font-size:16px;color:#6b7280;line-height:1.6;">
+        Tu solicitud fue enviada al administrador para revisión.
+      </p>
+      <a href="/organizers/${organizerId}/panel" style="
+        display:inline-block;
+        margin-top:16px;
+        background:#16a34a;
+        color:white;
+        text-decoration:none;
+        padding:12px 18px;
+        border-radius:10px;
+        font-weight:700;
+      ">Volver al panel</a>
+    </div>
+  </body>
+  </html>
+`);
 }
     const { data: rifa, error } = await supabase
       .from("rifas")
