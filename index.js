@@ -3507,7 +3507,7 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
 
 <div style="margin-bottom:14px;">
   <label><b>Método de pago</b></label><br>
-  <select name="payout_method" required style="width:100%;padding:10px;">
+  <select id="payout_method" name="payout_method" required style="width:100%;padding:10px;">
   <option value="">Seleccionar método</option>
   <option value="bank_transfer">Transferencia bancaria</option>
   <option value="nequi">Nequi</option>
@@ -3515,8 +3515,8 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
 </select>
 </div>
 
-<div style="margin-bottom:14px;">
-  <label><b>Banco</b></label><br>
+<div id="bank_block" style="margin-bottom:14px;">
+<label><b>Banco</b></label><br>
   <select name="bank_name" style="width:100%;padding:10px;">
   <option value="">Seleccionar banco</option>
   <option value="bancolombia">Bancolombia</option>
@@ -3539,8 +3539,8 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
 </select>
 </div>
 
-<div style="margin-bottom:14px;">
-  <label><b>Tipo de cuenta</b></label><br>
+<div id="account_type_block" style="margin-bottom:14px;">
+<label><b>Tipo de cuenta</b></label><br>
   <select name="account_type" style="width:100%;padding:10px;">
   <option value="">Tipo de cuenta</option>
   <option value="ahorros">Ahorros</option>
@@ -3576,6 +3576,29 @@ app.get("/organizers/:organizerId/verificacion", async (req, res) => {
       </button>
     </form>
   </div>
+  <script>
+
+const metodo = document.getElementById("payout_method");
+const banco = document.getElementById("bank_block");
+const tipoCuenta = document.getElementById("account_type_block");
+
+metodo.addEventListener("change", function(){
+
+    if(this.value === "nequi" || this.value === "daviplata"){
+
+        banco.style.display = "none";
+        tipoCuenta.style.display = "none";
+
+    }else{
+
+        banco.style.display = "block";
+        tipoCuenta.style.display = "block";
+
+    }
+
+});
+
+</script>
 </body>
 </html>
     `);
