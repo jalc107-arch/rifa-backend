@@ -1628,7 +1628,22 @@ if (String(req.session.organizerId) !== String(organizerId)) {
       .select("*")
       .eq("id", organizerId)
       .single();
+let verificationBadge = "";
 
+if(organizer.verification_status === "verified"){
+verificationBadge = `
+<div style="
+background:#e8f7ee;
+color:#1a7f37;
+padding:10px;
+border-radius:10px;
+margin-bottom:10px;
+font-weight:600;
+">
+✔ Organizador verificado
+</div>
+`;
+}
     if (organizerError || !organizer) {
   return res.status(404).send("Organizador no encontrado");
 }
