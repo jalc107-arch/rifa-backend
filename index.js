@@ -1993,7 +1993,11 @@ app.get("/organizers/:organizerId/crear-rifa", async (req, res) => {
       .select("*")
       .eq("id", organizerId)
       .single();
-
+const { data: lotteries } = await supabase
+.from("lotteries")
+.select("*")
+.eq("active", true)
+.order("name");
     if (error || !organizer) {
       return res.status(404).send("Organizador no encontrado");
     }
@@ -2003,6 +2007,9 @@ app.get("/organizers/:organizerId/crear-rifa", async (req, res) => {
     }
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
+    const lotteriesOptions = (lotteries || [])
+.map(l => `<option value="${l.code}">${l.name}</option>`)
+.join("");
     res.send(`
 <!DOCTYPE html>
 <html lang="es">
