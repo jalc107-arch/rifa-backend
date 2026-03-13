@@ -4173,7 +4173,7 @@ if (organizerError || !organizer) {
 
     if (updateError) throw updateError;
 
-    return res.redirect(`/admin/solicitudes-campanas?key=${encodeURIComponent(ADMIN_KEY)}`);
+    return res.redirect(`/admin?key=${encodeURIComponent(ADMIN_KEY)}`);
   } catch (e) {
     return res.status(500).send(e.message);
   }
@@ -4194,7 +4194,7 @@ if (key !== ADMIN_KEY) {
 
     if (error) throw error;
 
-    return res.redirect(`/admin/solicitudes-campanas?key=${encodeURIComponent(ADMIN_KEY)}`);
+    return res.redirect(`/admin?key=${encodeURIComponent(ADMIN_KEY)}`);
   } catch (e) {
     return res.status(500).send(e.message);
   }
