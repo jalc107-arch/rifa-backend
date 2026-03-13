@@ -2088,18 +2088,31 @@ const { data: lotteries } = await supabase
           style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;min-height:100px;"></textarea>
       </div>
 
-      <div style="margin-bottom:12px;">
-        <label><b>Tipo de sorteo</b></label><br/>
-        <select name="draw_provider" id="draw_provider"
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;">
-          <option value="baloto">Baloto</option>
-          <option value="loteria_meta">Lotería del Meta</option>
-          <option value="loteria_bogota">Lotería de Bogotá</option>
-          <option value="loteria_medellin">Lotería de Medellín</option>
-          <option value="loteria_boyaca">Lotería de Boyacá</option>
-          <option value="loteria_tolima">Lotería del Tolima</option>
-        </select>
-      </div>
+     <div style="margin-bottom:12px;">
+  <label><b>Tipo de sorteo</b></label><br/>
+  <select name="draw_provider" id="draw_provider"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;">
+    <option value="baloto">Baloto</option>
+    <option value="loteria_meta">Lotería del Meta</option>
+    <option value="loteria_bogota">Lotería de Bogotá</option>
+    <option value="loteria_medellin">Lotería de Medellín</option>
+    <option value="loteria_boyaca">Lotería de Boyacá</option>
+    <option value="loteria_tolima">Lotería del Tolima</option>
+    <option value="loteria_manizales">Lotería de Manizales</option>
+    <option value="loteria_cauca">Lotería del Cauca</option>
+    <option value="loteria_huila">Lotería del Huila</option>
+    <option value="loteria_santander">Lotería de Santander</option>
+    <option value="loteria_cruz_roja">Lotería de la Cruz Roja</option>
+    <option value="loteria_risaralda">Lotería de Risaralda</option>
+    <option value="loteria_quindio">Lotería del Quindío</option>
+    <option value="loteria_narino">Lotería de Nariño</option>
+    <option value="loteria_valle">Lotería del Valle</option>
+  </select>
+
+  <div id="draw_days_info" style="margin-top:8px;color:#2563eb;font-size:14px;font-weight:600;">
+    Baloto juega: lunes, miércoles y viernes
+  </div>
+</div>
 
       <div style="margin-bottom:12px;">
         <label><b>Modalidad</b></label><br/>
@@ -2184,7 +2197,32 @@ const { data: lotteries } = await supabase
   }
 
   drawProvider.addEventListener("change", reloadModes);
+  drawProvider.addEventListener("change", updateDrawDaysInfo);
   drawMode.addEventListener("change", updateTicketsInfo);
+
+  function updateDrawDaysInfo() {
+  const map = {
+    baloto: "Baloto juega: lunes, miércoles y viernes",
+
+    loteria_meta: "Lotería del Meta juega: miércoles",
+    loteria_bogota: "Lotería de Bogotá juega: jueves",
+    loteria_medellin: "Lotería de Medellín juega: viernes",
+    loteria_boyaca: "Lotería de Boyacá juega: sábado",
+    loteria_tolima: "Lotería del Tolima juega: lunes",
+    loteria_manizales: "Lotería de Manizales juega: miércoles",
+    loteria_cauca: "Lotería del Cauca juega: sábado",
+    loteria_huila: "Lotería del Huila juega: martes",
+    loteria_santander: "Lotería de Santander juega: viernes",
+    loteria_cruz_roja: "Lotería de la Cruz Roja juega: martes",
+    loteria_risaralda: "Lotería de Risaralda juega: viernes",
+    loteria_quindio: "Lotería del Quindío juega: jueves",
+    loteria_narino: "Lotería de Nariño juega: sábado",
+    loteria_valle: "Lotería del Valle juega: miércoles"
+  };
+
+  drawDaysInfo.textContent = map[drawProvider.value] || "Selecciona un tipo de sorteo";
+}
+  
 
   reloadModes();
 </script>
