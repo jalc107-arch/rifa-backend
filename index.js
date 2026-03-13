@@ -79,6 +79,38 @@ function slugify(text) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 }
+function getMaxTickets(drawProvider, drawMode) {
+  if (drawProvider === "baloto") {
+    if (drawMode === "baloto_2") return 903;
+    if (drawMode === "baloto_3") return 12341;
+    if (drawMode === "baloto_4") return 123410;
+    if (drawMode === "baloto_5") return 962598;
+  }
+
+  if (drawProvider.startsWith("loteria_")) {
+    if (drawMode === "loteria_2_primeras") return 100;
+    if (drawMode === "loteria_2_ultimas") return 100;
+    if (drawMode === "loteria_3_primeras") return 1000;
+    if (drawMode === "loteria_3_ultimas") return 1000;
+    if (drawMode === "loteria_4_primeras") return 10000;
+    if (drawMode === "loteria_4_ultimas") return 10000;
+  }
+
+  return 0;
+}
+
+function getWinningValueFromResult(drawMode, resultValue) {
+  const clean = String(resultValue || "").replace(/\D/g, "");
+
+  if (drawMode === "loteria_2_primeras") return clean.slice(0, 2);
+  if (drawMode === "loteria_2_ultimas") return clean.slice(-2);
+  if (drawMode === "loteria_3_primeras") return clean.slice(0, 3);
+  if (drawMode === "loteria_3_ultimas") return clean.slice(-3);
+  if (drawMode === "loteria_4_primeras") return clean.slice(0, 4);
+  if (drawMode === "loteria_4_ultimas") return clean.slice(-4);
+
+  return clean;
+}
 
 app.get("/", async (req, res) => {
   try {
