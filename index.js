@@ -4173,7 +4173,7 @@ if (organizerError || !organizer) {
 
     if (updateError) throw updateError;
 
-    return res.redirect("/admin/solicitudes-campanas");
+    return res.redirect(`/admin/solicitudes-campanas?key=${encodeURIComponent(ADMIN_KEY)}`);
   } catch (e) {
     return res.status(500).send(e.message);
   }
@@ -4194,7 +4194,7 @@ if (key !== ADMIN_KEY) {
 
     if (error) throw error;
 
-    return res.redirect("/admin/solicitudes-campanas");
+    return res.redirect(`/admin/solicitudes-campanas?key=${encodeURIComponent(ADMIN_KEY)}`);
   } catch (e) {
     return res.status(500).send(e.message);
   }
@@ -4377,7 +4377,7 @@ ${(campaignsPending || []).map(c => `
     <div style="color:#6b7280;margin:6px 0;">Valor cupón: $${Number(r.requested_price_per_ticket || 0).toLocaleString("es-CO")}</div>
     <div style="color:#6b7280;margin:0 0 12px 0;">Cantidad: ${r.requested_max_tickets || 0}</div>
 
-    <form method="POST" action="/admin/solicitudes-campanas/${r.id}/aprobar" style="display:inline;">
+    <form method="POST" action="/admin/solicitudes-campanas/${r.id}/aprobar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;">
       <button style="
         background:#16a34a;
         color:white;
@@ -4389,7 +4389,7 @@ ${(campaignsPending || []).map(c => `
       ">Aprobar</button>
     </form>
 
-    <form method="POST" action="/admin/solicitudes-campanas/${r.id}/rechazar" style="display:inline;margin-left:8px;">
+    <form method="POST" action="/admin/solicitudes-campanas/${r.id}/rechazar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;margin-left:8px;">
       <button style="
         background:#dc2626;
         color:white;
