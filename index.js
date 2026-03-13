@@ -941,6 +941,7 @@ if (drawDate <= now) {
 }
 
 const selectedDay = getDayNameEs(drawDate);
+const drawProvider = req.body.draw_provider;
 const allowedDays = getAllowedDays(drawProvider);
 
 if (!allowedDays.length) {
