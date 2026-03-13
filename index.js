@@ -4485,13 +4485,21 @@ ${(campaignsPending || []).map(c => `
   ">
     <div style="font-weight:700;">${c.title}</div>
 
-    <div style="color:#6b7280;margin:6px 0;">
-      Premio: ${c.prize}
-    </div>
+<div style="color:#6b7280;margin:6px 0;">
+  Premio: ${c.prize}
+</div>
 
-    <div style="color:#6b7280;margin:0 0 12px 0;">
-      Precio: $${Number(c.price_per_ticket || 0).toLocaleString("es-CO")}
-    </div>
+<div style="color:#6b7280;margin:6px 0;">
+  Sorteo: ${getDrawProviderLabel(c.draw_provider)}
+</div>
+
+<div style="color:#6b7280;margin:6px 0;">
+  Modalidad: ${getDrawModeLabel(c.draw_mode || c.modality)}
+</div>
+
+<div style="color:#6b7280;margin:0 0 12px 0;">
+  Precio: $${Number(c.price_per_ticket || 0).toLocaleString("es-CO")}
+</div>
 
     <a href="/admin/aprobar/${c.slug}?key=${encodeURIComponent(ADMIN_KEY)}" style="
       display:inline-block;
