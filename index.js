@@ -2292,7 +2292,7 @@ app.post("/organizers/:organizerId/crear-rifa", express.urlencoded({ extended: t
     if (monthlyError) throw monthlyError;
 
     const monthlyCount = (monthlyCampaigns || []).length;
-    const maxTickets = getMaxTickets(drawProvider, drawMode);
+   
     if (monthlyCount >= 2) {
       const { error: requestError } = await supabase
         .from("campaign_requests")
