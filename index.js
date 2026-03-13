@@ -4539,9 +4539,11 @@ ${(campaignsPending || []).map(c => `
     border:1px solid #e5e7eb;
   ">
     <div style="font-weight:700;">${r.requested_title}</div>
-    <div style="color:#6b7280;margin:6px 0;">Premio: ${r.requested_prize}</div>
-    <div style="color:#6b7280;margin:6px 0;">Valor cupón: $${Number(r.requested_price_per_ticket || 0).toLocaleString("es-CO")}</div>
-    <div style="color:#6b7280;margin:0 0 12px 0;">Cantidad: ${r.requested_max_tickets || 0}</div>
+<div style="color:#6b7280;margin:6px 0;">Premio: ${r.requested_prize}</div>
+<div style="color:#6b7280;margin:6px 0;">Sorteo: ${getDrawProviderLabel(r.requested_draw_provider)}</div>
+<div style="color:#6b7280;margin:6px 0;">Modalidad: ${getDrawModeLabel(r.requested_draw_mode || r.requested_modality)}</div>
+<div style="color:#6b7280;margin:6px 0;">Valor cupón: $${Number(r.requested_price_per_ticket || 0).toLocaleString("es-CO")}</div>
+<div style="color:#6b7280;margin:0 0 12px 0;">Cantidad: ${r.requested_max_tickets || 0}</div>
 
     <form method="POST" action="/admin/solicitudes-campanas/${r.id}/aprobar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;">
       <button style="
