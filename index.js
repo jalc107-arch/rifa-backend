@@ -806,6 +806,9 @@ if (organizerError || !organizer) {
 }
 
 const ownerId = organizer.profile_id;
+
+    console.log("organizerId:", organizerId);
+console.log("profile_id:", organizer.profile_id);
     const title = String(req.body.title || "").trim();
     const prize = String(req.body.prize || "").trim();
     const description = String(req.body.description || "").trim();
