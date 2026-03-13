@@ -2057,21 +2057,6 @@ if (!organizerVerification || organizerVerification.verification_status !== "ver
 }
 let requestsBanner = "";
 
-if ((pendingRequests || []).length > 0) {
-  requestsBanner = `
-    <div style="
-      background:#e0f2fe;
-      color:#075985;
-      border:1px solid #bae6fd;
-      padding:14px 16px;
-      border-radius:12px;
-      margin:18px 0;
-      font-weight:600;
-    ">
-      Tienes ${(pendingRequests || []).length} solicitud(es) extra de campaña en revisión por el administrador.
-    </div>
-  `;
-}
     
     const now = new Date();
 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
