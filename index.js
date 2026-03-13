@@ -1879,14 +1879,16 @@ ${organizer.verification_status === "verified" ? `
         <div style="background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);overflow:auto;">
           <table style="width:100%;border-collapse:collapse;min-width:800px;">
             <thead style="background:#0f172a;color:white;">
-              <tr>
-                <th style="padding:14px;text-align:left;">Campaña</th>
-                <th style="padding:14px;text-align:left;">Premio</th>
-                <th style="padding:14px;text-align:center;">Vendidas</th>
-                <th style="padding:14px;text-align:center;">Disponibles</th>
-                <th style="padding:14px;text-align:right;">Precio</th>
-                <th style="padding:14px;text-align:center;">Estado</th>
-              </tr>
+             <tr>
+  <th style="padding:14px;text-align:left;">Campaña</th>
+  <th style="padding:14px;text-align:left;">Premio</th>
+  <th style="padding:14px;text-align:left;">Sorteo</th>
+  <th style="padding:14px;text-align:left;">Modalidad</th>
+  <th style="padding:14px;text-align:center;">Vendidas</th>
+  <th style="padding:14px;text-align:center;">Disponibles</th>
+  <th style="padding:14px;text-align:right;">Precio</th>
+  <th style="padding:14px;text-align:center;">Estado</th>
+</tr>
             </thead>
             <tbody>
               ${rows || `<tr><td colspan="5" style="padding:18px;">Este organizador aún no tiene rifas.</td></tr>`}
