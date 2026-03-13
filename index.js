@@ -4206,9 +4206,10 @@ if (key !== ADMIN_KEY) {
 app.post("/admin/solicitudes-campanas/:requestId/aprobar", async (req, res) => {
   try {
     const key = String(req.query.key || "");
-if (key !== ADMIN_KEY) {
-  return res.status(403).send("Acceso no autorizado");
-}
+    if (key !== ADMIN_KEY) {
+      return res.status(403).send("Acceso no autorizado");
+    }
+
     const { requestId } = req.params;
 
     const { data: requestData, error: requestError } = await supabase
@@ -4221,27 +4222,33 @@ if (key !== ADMIN_KEY) {
       return res.status(404).send("Solicitud no encontrada");
     }
 
-let slug = slugify(requestData.requested_title || "campana");
-if (!slug) slug = `campana-${Date.now()}`;
+    let slug = slugify(requestData.requested_title || "campana");
+    if (!slug) slug = `campana-${Date.now()}`;
 
-const { data: existingSlug } = await supabase
-  .from("rifas")
-  .select("id, slug")
-  .eq("slug", slug)
-  .maybeSingle();
+    const { data: existingSlug } = await supabase
+      .from("rifas")
+      .select("id, slug")
+      .eq("slug", slug)
+      .maybeSingle();
 
-if (existingSlug) {
-  slug = `${slug}-${Date.now().toString().slice(-6)}`;
-}
+    if (existingSlug) {
+      slug = `${slug}-${Date.now().toString().slice(-6)}`;
+    }
+
     const { data: organizer, error: organizerError } = await supabase
-  .from("organizers")
-  .select("profile_id")
-  .eq("id", requestData.organizer_id)
-  .single();
+      .from("organizers")
+      .select("profile_id")
+      .eq("id", requestData.organizer_id)
+      .single();
 
-if (organizerError || !organizer) {
-  return res.status(404).send("Organizador no encontrado");
-}
+    if (organizerError || !organizer) {
+      return res.status(404).send("Organizador no encontrado");
+    }
+
+    const drawProvider = requestData.requested_draw_provider || "baloto";
+    const drawMode = requestData.requested_draw_mode || requestData.requested_modality;
+    const maxTickets = getMaxTickets(drawProvider, drawMode);
+
     const { error: insertError } = await supabase
       .from("rifas")
       .insert({
@@ -4249,13 +4256,18 @@ if (organizerError || !organizer) {
         title: requestData.requested_title,
         prize: requestData.requested_prize,
         description: requestData.requested_description,
-        modality: requestData.requested_modality,
+        draw_provider: drawProvider,
+        draw_mode: drawMode,
+        modality: drawMode,
         price_per_ticket: requestData.requested_price_per_ticket,
-        max_tickets: requestData.requested_max_tickets,
+        max_tickets: maxTickets,
         sold_tickets: 0,
-        available_tickets: requestData.requested_max_tickets,
+        available_tickets: maxTickets,
         draw_date: requestData.requested_draw_date,
-        status: "pending"
+        status: "pending",
+        slug,
+        result_value: null,
+        result_loaded_manually: false
       });
 
     if (insertError) throw insertError;
@@ -4272,7 +4284,6 @@ if (organizerError || !organizer) {
     return res.status(500).send(e.message);
   }
 });
-
 app.post("/admin/solicitudes-campanas/:requestId/rechazar", async (req, res) => {
   try {
     const key = String(req.query.key || "");
