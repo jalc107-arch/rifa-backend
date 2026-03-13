@@ -793,7 +793,19 @@ app.get("/crear-rifa", async (req, res) => {
 
 app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const ownerId = (process.env.DEFAULT_OWNER_ID || "").trim();
+   const organizerId = req.session.organizerId;
+
+    const { data: organizer, error: organizerError } = await supabase
+  .from("organizers")
+  .select("profile_id")
+  .eq("id", organizerId)
+  .single();
+
+if (organizerError || !organizer) {
+  return res.status(404).send("Organizador no encontrado");
+}
+
+const ownerId = organizer.profile_id;
     const title = String(req.body.title || "").trim();
     const prize = String(req.body.prize || "").trim();
     const description = String(req.body.description || "").trim();
@@ -802,11 +814,7 @@ app.post("/crear-rifa", express.urlencoded({ extended: true }), async (req, res)
     const maxTickets = Number(req.body.max_tickets || 0);
     const drawDateRaw = String(req.body.draw_date || "").trim();
 
-    if (!ownerId) {
-      return res.status(500).send("Falta DEFAULT_OWNER_ID en Railway");
-    }
-
-    if (!title || !prize || !drawDateRaw) {
+       if (!title || !prize || !drawDateRaw) {
       return res.status(400).send("Faltan campos obligatorios");
     }
 
