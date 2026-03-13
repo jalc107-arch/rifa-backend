@@ -940,8 +940,9 @@ if (drawDate <= now) {
   return res.status(400).send("La fecha del sorteo debe ser futura.");
 }
 
-const selectedDay = getDayNameEs(drawDate);
 const drawProvider = req.body.draw_provider;
+    
+const selectedDay = getDayNameEs(drawDate);
 const allowedDays = getAllowedDays(drawProvider);
 
 if (!allowedDays.length) {
