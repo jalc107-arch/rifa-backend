@@ -681,42 +681,53 @@ if (totalBoughtByPhone + qty > 50) {
 
     const reference = genReference();
 
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        rifa_id: rifaId,
-        buyer_id: buyer.id,
-        qty,
-        subtotal: total,
-        total_paid: total,
-        commission,
-        payment_status: "created",
-      })
-      .select()
-      .single();
+  try {
 
-    if (orderError) throw orderError;
+  // 1️⃣ Crear orden
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .insert({
+      rifa_id: rifaId,
+      buyer_id: buyer.id,
+      qty,
+      subtotal: total,
+      total_paid: total,
+      commission,
+      payment_status: "created",
+    })
+    .select()
+    .single();
 
-    const { error: paymentInsertError } = await supabase
-      .from("payments")
-      .insert({
-        order_id: order.id,
-        provider: "wompi",
-        external_reference: reference,
-        amount: total,
-        status: "CREATED",
-      });
+  if (orderError) throw orderError;
 
-    if (paymentInsertError) throw paymentInsertError;
 
-    const base = getBaseUrl(req);
-    const pagarUrl = `${base}/rifas/${rifaId}/orden/${order.id}/pagar?reference=${reference}`;
+  // 2️⃣ Registrar pago en la tabla payments
+  const { error: paymentInsertError } = await supabase
+    .from("payments")
+    .insert({
+      order_id: order.id,
+      provider: "wompi",
+      external_reference: reference,
+      amount: total,
+      status: "CREATED",
+    });
 
-    return res.redirect(pagarUrl);
-  } catch (e) {
-    return res.status(500).send(e.message);
-  }
-});
+  if (paymentInsertError) throw paymentInsertError;
+
+
+  // 3️⃣ Construir URL de pago
+  const base = getBaseUrl(req);
+
+  const pagarUrl = `${base}/rifas/${rifaId}/orden/${order.id}/pagar?reference=${reference}`;
+
+  return res.redirect(pagarUrl);
+
+} catch (error) {
+
+  console.error("Error creando orden:", error);
+
+  return res.status(500).send(error.message);
+}
 
 app.get("/crear-rifa", async (req, res) => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -806,7 +817,9 @@ if (organizerError || !organizer) {
 }
 
 const ownerId = organizer.profile_id;
-
+console.log("organizerId:", organizerId);
+console.log("profile_id real:", organizer.profile_id);
+console.log("ownerId que voy a insertar:", ownerId);
     console.log("organizerId:", organizerId);
 console.log("profile_id:", organizer.profile_id);
     const title = String(req.body.title || "").trim();
