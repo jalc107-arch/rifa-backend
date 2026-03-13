@@ -4394,9 +4394,8 @@ ${(campaignsPending || []).map(c => `
     </body>
     </html>
     `);
-
   } catch (e) {
-    res.status(500).send(e.message);
+    return res.status(500).send(e.message);
   }
 });
 
