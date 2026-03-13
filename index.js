@@ -929,9 +929,29 @@ console.log("profile_id:", organizer.profile_id);
     }
 
     const drawDate = new Date(drawDateRaw);
-    if (Number.isNaN(drawDate.getTime())) {
-      return res.status(400).send("Fecha inválida");
-    }
+
+if (Number.isNaN(drawDate.getTime())) {
+  return res.status(400).send("Fecha inválida");
+}
+
+const now = new Date();
+
+if (drawDate <= now) {
+  return res.status(400).send("La fecha del sorteo debe ser futura.");
+}
+
+const selectedDay = getDayNameEs(drawDate);
+const allowedDays = getAllowedDays(drawProvider);
+
+if (!allowedDays.length) {
+  return res.status(400).send("Tipo de sorteo inválido.");
+}
+
+if (!allowedDays.includes(selectedDay)) {
+  return res.status(400).send(
+    `La fecha seleccionada no corresponde a un día válido para este sorteo. Debe ser: ${allowedDays.join(", ")}.`
+  );
+}
 
     let slug = slugify(title);
     if (!slug) slug = `rifa-${Date.now()}`;
