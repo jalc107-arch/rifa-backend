@@ -1823,15 +1823,17 @@ const { data: pendingRequests, error: pendingRequestsError } = await supabase
 if (pendingRequestsError) throw pendingRequestsError;
     
     const rows = (rifas || []).map((r) => `
-      <tr>
-        <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.title || ""}</td>
-        <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.prize || ""}</td>
-        <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.sold_tickets || 0}</td>
-        <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.available_tickets || 0}</td>
-        <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:right;">$${Number(r.price_per_ticket || 0).toLocaleString("es-CO")}</td>
-        <td style="padding:14px;text-align:center;">${r.status || ""}</td>
-      </tr>
-    `).join("");
+  <tr>
+    <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.title || ""}</td>
+    <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${r.prize || ""}</td>
+    <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${getDrawProviderLabel(r.draw_provider)}</td>
+    <td style="padding:12px;border-bottom:1px solid #e2e8f0;">${getDrawModeLabel(r.draw_mode || r.modality)}</td>
+    <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.sold_tickets || 0}</td>
+    <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:center;">${r.available_tickets || 0}</td>
+    <td style="padding:12px;border-bottom:1px solid #e2e8f0;text-align:right;">$${Number(r.price_per_ticket || 0).toLocaleString("es-CO")}</td>
+    <td style="padding:14px;text-align:center;">${r.status || ""}</td>
+  </tr>
+`).join("");
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(`
