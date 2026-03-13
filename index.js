@@ -100,6 +100,31 @@ function getMaxTickets(drawProvider, drawMode) {
 }
 
 function getWinningValueFromResult(drawMode, resultValue) {
+  function getDrawProviderLabel(drawProvider) {
+  if (drawProvider === "baloto") return "Baloto";
+  if (drawProvider === "loteria_meta") return "Lotería del Meta";
+  if (drawProvider === "loteria_bogota") return "Lotería de Bogotá";
+  if (drawProvider === "loteria_medellin") return "Lotería de Medellín";
+  if (drawProvider === "loteria_boyaca") return "Lotería de Boyacá";
+  if (drawProvider === "loteria_tolima") return "Lotería del Tolima";
+  return drawProvider || "-";
+}
+
+function getDrawModeLabel(drawMode) {
+  if (drawMode === "baloto_2") return "2 balotas";
+  if (drawMode === "baloto_3") return "3 balotas";
+  if (drawMode === "baloto_4") return "4 balotas";
+  if (drawMode === "baloto_5") return "5 balotas";
+
+  if (drawMode === "loteria_2_primeras") return "2 primeras cifras";
+  if (drawMode === "loteria_2_ultimas") return "2 últimas cifras";
+  if (drawMode === "loteria_3_primeras") return "3 primeras cifras";
+  if (drawMode === "loteria_3_ultimas") return "3 últimas cifras";
+  if (drawMode === "loteria_4_primeras") return "4 primeras cifras";
+  if (drawMode === "loteria_4_ultimas") return "4 últimas cifras";
+
+  return drawMode || "-";
+}
   const clean = String(resultValue || "").replace(/\D/g, "");
 
   if (drawMode === "loteria_2_primeras") return clean.slice(0, 2);
