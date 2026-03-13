@@ -4135,10 +4135,19 @@ const { data: existingSlug } = await supabase
 if (existingSlug) {
   slug = `${slug}-${Date.now().toString().slice(-6)}`;
 }
+    const { data: organizer, error: organizerError } = await supabase
+  .from("organizers")
+  .select("profile_id")
+  .eq("id", requestData.organizer_id)
+  .single();
+
+if (organizerError || !organizer) {
+  return res.status(404).send("Organizador no encontrado");
+}
     const { error: insertError } = await supabase
       .from("rifas")
       .insert({
-        owner_id: requestData.organizer_id,
+        owner_id: organizer.profile_id,
         title: requestData.requested_title,
         prize: requestData.requested_prize,
         description: requestData.requested_description,
