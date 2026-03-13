@@ -2148,23 +2148,23 @@ if (monthlyCount >= 2) {
 `);
 }
     const { data: rifa, error } = await supabase
-      .from("rifas")
-      .insert({
-        owner_id: "811e14fd-ba47-4c19-a3dd-38049a0d1efa",
-        title,
-        prize,
-        description,
-        modality,
-        price_per_ticket: pricePerTicket,
-        max_tickets: maxTickets,
-        sold_tickets: 0,
-        available_tickets: maxTickets,
-        draw_date: drawDate.toISOString(),
-        status: "pending",
-        slug,
-      })
-      .select()
-      .single();
+  .from("rifas")
+  .insert({
+    owner_id: organizer.profile_id,
+    title,
+    prize,
+    description,
+    modality,
+    price_per_ticket: pricePerTicket,
+    max_tickets: maxTickets,
+    sold_tickets: 0,
+    available_tickets: maxTickets,
+    draw_date: drawDate.toISOString(),
+    status: "pending",
+    slug,
+  })
+  .select()
+  .single();
 
     if (error) throw error;
 
