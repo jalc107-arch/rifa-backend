@@ -1944,16 +1944,11 @@ app.get("/organizers/:organizerId/crear-rifa", async (req, res) => {
     if (error || !organizer) {
       return res.status(404).send("Organizador no encontrado");
     }
-    if (organizer.verification_status !== "verified") {
-  return res.status(403).send("Tu cuenta aún no ha sido aprobada por el administrador.");
-}
-    const { data: pendingRequests, error: pendingRequestsError } = await supabase
-  .from("campaign_requests")
-  .select("*")
-  .eq("organizer_id", organizerId)
-  .eq("status", "pending");
 
-if (pendingRequestsError) throw pendingRequestsError;
+    if (organizer.verification_status !== "verified") {
+      return res.status(403).send("Tu cuenta aún no ha sido aprobada por el administrador.");
+    }
+
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(`
 <!DOCTYPE html>
@@ -1988,25 +1983,30 @@ if (pendingRequestsError) throw pendingRequestsError;
       </div>
 
       <div style="margin-bottom:12px;">
-        <label><b>Modalidad</b></label><br/>
-        <select name="modality"
+        <label><b>Tipo de sorteo</b></label><br/>
+        <select name="draw_provider" id="draw_provider"
           style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;">
-          <option value="2">2 balotas</option>
-          <option value="3" selected>3 balotas</option>
-          <option value="4">4 balotas</option>
-          <option value="5">5 balotas</option>
+          <option value="baloto">Baloto</option>
+          <option value="loteria_meta">Lotería del Meta</option>
+          <option value="loteria_bogota">Lotería de Bogotá</option>
+          <option value="loteria_medellin">Lotería de Medellín</option>
+          <option value="loteria_boyaca">Lotería de Boyacá</option>
+          <option value="loteria_tolima">Lotería del Tolima</option>
         </select>
       </div>
 
       <div style="margin-bottom:12px;">
-        <label><b>Precio por boleta</b></label><br/>
-        <input type="number" name="price_per_ticket" min="1" required
-          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
+        <label><b>Modalidad</b></label><br/>
+        <select name="draw_mode" id="draw_mode"
+          style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;">
+        </select>
       </div>
 
+      <div id="tickets_info" style="margin-bottom:12px;font-size:13px;color:#6b7280;"></div>
+
       <div style="margin-bottom:12px;">
-        <label><b>Máximo de boletas</b></label><br/>
-        <input type="number" name="max_tickets" min="1" required
+        <label><b>Precio por cupón</b></label><br/>
+        <input type="number" name="price_per_ticket" min="1" required
           style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
       </div>
 
@@ -2018,10 +2018,70 @@ if (pendingRequestsError) throw pendingRequestsError;
 
       <button type="submit"
         style="background:#16a34a;color:#fff;border:none;padding:14px 18px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:700;width:100%;">
-        Crear rifa
+        Crear campaña
       </button>
     </form>
   </div>
+
+<script>
+  const drawProvider = document.getElementById("draw_provider");
+  const drawMode = document.getElementById("draw_mode");
+  const ticketsInfo = document.getElementById("tickets_info");
+
+  function getMaxTicketsFrontend(provider, mode) {
+    if (provider === "baloto") {
+      if (mode === "baloto_2") return 903;
+      if (mode === "baloto_3") return 12341;
+      if (mode === "baloto_4") return 123410;
+      if (mode === "baloto_5") return 962598;
+    }
+
+    if (provider.startsWith("loteria_")) {
+      if (mode === "loteria_2_primeras") return 100;
+      if (mode === "loteria_2_ultimas") return 100;
+      if (mode === "loteria_3_primeras") return 1000;
+      if (mode === "loteria_3_ultimas") return 1000;
+      if (mode === "loteria_4_primeras") return 10000;
+      if (mode === "loteria_4_ultimas") return 10000;
+    }
+
+    return 0;
+  }
+
+  function reloadModes() {
+    const provider = drawProvider.value;
+
+    if (provider === "baloto") {
+      drawMode.innerHTML = \`
+        <option value="baloto_2">2 balotas</option>
+        <option value="baloto_3" selected>3 balotas</option>
+        <option value="baloto_4">4 balotas</option>
+        <option value="baloto_5">5 balotas</option>
+      \`;
+    } else {
+      drawMode.innerHTML = \`
+        <option value="loteria_2_primeras">2 primeras cifras</option>
+        <option value="loteria_2_ultimas">2 últimas cifras</option>
+        <option value="loteria_3_primeras">3 primeras cifras</option>
+        <option value="loteria_3_ultimas">3 últimas cifras</option>
+        <option value="loteria_4_primeras">4 primeras cifras</option>
+        <option value="loteria_4_ultimas">4 últimas cifras</option>
+      \`;
+    }
+
+    updateTicketsInfo();
+  }
+
+  function updateTicketsInfo() {
+    const total = getMaxTicketsFrontend(drawProvider.value, drawMode.value);
+    ticketsInfo.innerHTML = "Total automático de cupones posibles: <b>" + total.toLocaleString("es-CO") + "</b>";
+  }
+
+  drawProvider.addEventListener("change", reloadModes);
+  drawMode.addEventListener("change", updateTicketsInfo);
+
+  reloadModes();
+</script>
 </body>
 </html>
     `);
