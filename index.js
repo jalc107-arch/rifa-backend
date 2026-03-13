@@ -681,54 +681,53 @@ if (totalBoughtByPhone + qty > 50) {
 
     const reference = genReference();
 
-  try {
+    try {
 
-  // 1️⃣ Crear orden
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      rifa_id: rifaId,
-      buyer_id: buyer.id,
-      qty,
-      subtotal: total,
-      total_paid: total,
-      commission,
-      payment_status: "created",
-    })
-    .select()
-    .single();
+      // 1. Crear orden
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          rifa_id: rifaId,
+          buyer_id: buyer.id,
+          qty,
+          subtotal: total,
+          total_paid: total,
+          commission,
+          payment_status: "created",
+        })
+        .select()
+        .single();
 
-  if (orderError) throw orderError;
+      if (orderError) throw orderError;
 
+      // 2. Registrar pago
+      const { error: paymentInsertError } = await supabase
+        .from("payments")
+        .insert({
+          order_id: order.id,
+          provider: "wompi",
+          external_reference: reference,
+          amount: total,
+          status: "CREATED",
+        });
 
-  // 2️⃣ Registrar pago en la tabla payments
-  const { error: paymentInsertError } = await supabase
-    .from("payments")
-    .insert({
-      order_id: order.id,
-      provider: "wompi",
-      external_reference: reference,
-      amount: total,
-      status: "CREATED",
-    });
+      if (paymentInsertError) throw paymentInsertError;
 
-  if (paymentInsertError) throw paymentInsertError;
+      // 3. Redirigir a pago
+      const base = getBaseUrl(req);
+      const pagarUrl = `${base}/rifas/${rifaId}/orden/${order.id}/pagar?reference=${reference}`;
 
+      return res.redirect(pagarUrl);
 
-  // 3️⃣ Construir URL de pago
-  const base = getBaseUrl(req);
+    } catch (error) {
+      console.error("Error creando orden:", error);
+      return res.status(500).send(error.message);
+    }
 
-  const pagarUrl = `${base}/rifas/${rifaId}/orden/${order.id}/pagar?reference=${reference}`;
-
-  return res.redirect(pagarUrl);
-
-} catch (error) {
-
-  console.error("Error creando orden:", error);
-
-  return res.status(500).send(error.message);
-}
-
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
 app.get("/crear-rifa", async (req, res) => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.send(`
