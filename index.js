@@ -1889,14 +1889,35 @@ app.post("/panel/rifa/:rifaId/sorteo", express.urlencoded({ extended: true }), a
       .single();
 
     if (rifaError || !rifa) {
-      return res.status(404).send("Rifa no encontrada");
+      return res.status(404).send("Campaña no encontrada");
+    }
+
+    let normalizedWinningValue = winningCombination;
+
+    if (String(rifa.draw_provider || "").startsWith("loteria_")) {
+      const cleanResult = String(winningCombination).replace(/\D/g, "");
+      if (cleanResult.length !== 4) {
+        return res.status(400).send("Para loterías debes ingresar exactamente 4 cifras.");
+      }
+
+      normalizedWinningValue = getWinningValueFromResult(rifa.draw_mode, cleanResult);
+
+      const { error: updateRifaError } = await supabase
+        .from("rifas")
+        .update({
+          result_value: cleanResult,
+          result_loaded_manually: true
+        })
+        .eq("id", rifaId);
+
+      if (updateRifaError) throw updateRifaError;
     }
 
     const { data: winnerTicket, error: ticketError } = await supabase
       .from("tickets")
       .select("*")
       .eq("rifa_id", rifaId)
-      .eq("combination", winningCombination)
+      .eq("combination", normalizedWinningValue)
       .maybeSingle();
 
     if (ticketError) throw ticketError;
@@ -1918,14 +1939,14 @@ app.post("/panel/rifa/:rifaId/sorteo", express.urlencoded({ extended: true }), a
       .from("raffle_results")
       .insert({
         rifa_id: rifaId,
-        winning_combination: winningCombination,
+        winning_combination: normalizedWinningValue,
         winner_ticket_id: winnerTicket?.id || null,
         winner_buyer_id: winnerBuyerId || null,
       });
 
     if (insertError) throw insertError;
 
-    return res.redirect(`/panel/rifa/${rifaId}?resultado=${encodeURIComponent(winningCombination)}`);
+    return res.redirect(`/panel/rifa/${rifaId}?resultado=${encodeURIComponent(normalizedWinningValue)}`);
   } catch (e) {
     return res.status(500).send(e.message);
   }
