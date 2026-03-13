@@ -1891,7 +1891,7 @@ ${organizer.verification_status === "verified" ? `
 </tr>
             </thead>
             <tbody>
-              ${rows || `<tr><td colspan="5" style="padding:18px;">Este organizador aún no tiene rifas.</td></tr>`}
+              ${rows || `<tr><td colspan="8" style="padding:18px;">Este organizador aún no tiene campañas.</td></tr>`}
             </tbody>
           </table>
         </div>
