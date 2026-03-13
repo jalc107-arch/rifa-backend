@@ -2593,12 +2593,50 @@ ${estadoTexto}
 🎟️ Boleta: $${Number(rifa.price_per_ticket).toLocaleString("es-CO")}
 📊 Vendidas: ${vendidos}/${maximos}
 
+<a
+  href="https://wa.me/?text=${encodeURIComponent(`🎁 Participa en esta campaña
+
+Premio: ${rifa.prize || "Premio"}
+Cupón: $${Number(rifa.price_per_ticket || 0).toLocaleString("es-CO")}
+Vendidas: ${vendidos}/${maximos}
+
 Compra aquí:
 ${rifa.slug ? `${base}/r/${rifa.slug}` : `${base}/rifa-publica/${rifa.id}`}`)}"
-            target="_blank"
-          >
-            Compartir por WhatsApp
-          </a>
+  target="_blank"
+  style="
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    background:#25D366;
+    color:white;
+    text-decoration:none;
+    border-radius:20px;
+    padding:18px;
+    min-height:220px;
+    font-weight:700;
+  "
+>
+  <img
+    src="https://cdn-icons-png.flaticon.com/512/733/733585.png"
+    alt="WhatsApp"
+    style="
+      width:48px;
+      height:48px;
+      object-fit:contain;
+      margin-bottom:14px;
+    "
+  />
+
+  <div style="
+    font-size:28px;
+    line-height:1.2;
+    font-weight:900;
+  ">
+    Compartir por WhatsApp
+  </div>
+</a>
 
           <div class="notice">
             Los cupones de participación se asignan automáticamente después del pago aprobado.
