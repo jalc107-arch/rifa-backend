@@ -2096,39 +2096,36 @@ app.post("/organizers/:organizerId/crear-rifa", express.urlencoded({ extended: t
     const title = String(req.body.title || "").trim();
     const prize = String(req.body.prize || "").trim();
     const description = String(req.body.description || "").trim();
-    const modality = Number(req.body.modality || 3);
+    const drawProvider = String(req.body.draw_provider || "baloto").trim();
+    const drawMode = String(req.body.draw_mode || "baloto_3").trim();
     const pricePerTicket = Number(req.body.price_per_ticket || 0);
-    const maxTickets = Number(req.body.max_tickets || 0);
     const drawDateRaw = String(req.body.draw_date || "").trim();
-    
+
     const { data: organizerCheck, error: organizerCheckError } = await supabase
-  .from("organizers")
-  .select("*")
-  .eq("id", organizerId)
-  .single();
+      .from("organizers")
+      .select("*")
+      .eq("id", organizerId)
+      .single();
 
-if (organizerCheckError || !organizerCheck) {
-  return res.status(404).send("Organizador no encontrado");
-}
+    if (organizerCheckError || !organizerCheck) {
+      return res.status(404).send("Organizador no encontrado");
+    }
 
-if (organizerCheck.verification_status !== "verified") {
-  return res.status(403).send("Tu cuenta aún no ha sido aprobada por el administrador.");
-}
+    if (organizerCheck.verification_status !== "verified") {
+      return res.status(403).send("Tu cuenta aún no ha sido aprobada por el administrador.");
+    }
 
     if (!title || !prize || !drawDateRaw) {
       return res.status(400).send("Faltan campos obligatorios");
-    }
-
-    if (![2, 3, 4, 5].includes(modality)) {
-      return res.status(400).send("Modalidad inválida");
     }
 
     if (!Number.isFinite(pricePerTicket) || pricePerTicket <= 0) {
       return res.status(400).send("Precio inválido");
     }
 
-    if (!Number.isInteger(maxTickets) || maxTickets <= 0) {
-      return res.status(400).send("Máximo de boletas inválido");
+    const maxTickets = getMaxTickets(drawProvider, drawMode);
+    if (maxTickets <= 0) {
+      return res.status(400).send("Modalidad inválida");
     }
 
     const drawDate = new Date(drawDateRaw);
@@ -2137,7 +2134,7 @@ if (organizerCheck.verification_status !== "verified") {
     }
 
     let slug = slugify(title);
-    if (!slug) slug = `rifa-${Date.now()}`;
+    if (!slug) slug = `campana-${Date.now()}`;
 
     const { data: existingSlug } = await supabase
       .from("rifas")
@@ -2148,117 +2145,122 @@ if (organizerCheck.verification_status !== "verified") {
     if (existingSlug) {
       slug = `${slug}-${Date.now().toString().slice(-6)}`;
     }
-const { data: organizer, error: organizerError } = await supabase
-  .from("organizers")
-  .select("*")
-  .eq("id", organizerId)
-  .single();
 
-if (organizerError || !organizer) {
-  return res.status(404).send("Organizador no encontrado");
-}
+    const { data: organizer, error: organizerError } = await supabase
+      .from("organizers")
+      .select("*")
+      .eq("id", organizerId)
+      .single();
 
-if (!organizer.profile_id) {
-  return res.status(400).send("El organizador no tiene profile_id asociado");
-}
-   const { data: organizerVerification } = await supabase
-  .from("organizers")
-  .select("verification_status")
-  .eq("id", organizerId)
-  .single();
+    if (organizerError || !organizer) {
+      return res.status(404).send("Organizador no encontrado");
+    }
 
-if (!organizerVerification || organizerVerification.verification_status !== "verified") {
-  return res.status(403).send("Debes completar tu verificación antes de crear campañas.");
-}
-let requestsBanner = "";
+    if (!organizer.profile_id) {
+      return res.status(400).send("El organizador no tiene profile_id asociado");
+    }
 
-    
-    const now = new Date();
-const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+    if (!title || title.trim().length < 5) {
+      return res.status(400).send("El título debe tener al menos 5 caracteres.");
+    }
 
-const { data: monthlyCampaigns, error: monthlyError } = await supabase
-  .from("rifas")
-  .select("id")
-  .eq("owner_id", organizer.profile_id)
-  .gte("created_at", monthStart)
-  .lt("created_at", nextMonthStart);
+    if (!description || description.trim().length < 20) {
+      return res.status(400).send("La descripción debe tener al menos 20 caracteres.");
+    }
 
-if (monthlyError) throw monthlyError;
+    if (!prize || prize.trim().length < 3) {
+      return res.status(400).send("Debes indicar el premio.");
+    }
 
-const monthlyCount = (monthlyCampaigns || []).length;
+    const nowDate = new Date();
+    const monthStart = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1).toISOString();
+    const nextMonthStart = new Date(nowDate.getFullYear(), nowDate.getMonth() + 1, 1).toISOString();
 
-if (monthlyCount >= 2) {
-  const { error: requestError } = await supabase
-    .from("campaign_requests")
-    .insert({
-      organizer_id: organizerId,
-      requested_title: title,
-      requested_prize: prize,
-      requested_description: description,
-      requested_modality: String(modality),
-      requested_price_per_ticket: pricePerTicket,
-      requested_max_tickets: maxTickets,
-      requested_draw_date: drawDate.toISOString(),
-      requested_rules_text: req.body.rules_text || null,
-      requested_prize_value: req.body.prize_value ? Number(req.body.prize_value) : null,
-      status: "pending"
-    });
+    const { data: monthlyCampaigns, error: monthlyError } = await supabase
+      .from("rifas")
+      .select("id")
+      .eq("owner_id", organizer.profile_id)
+      .gte("created_at", monthStart)
+      .lt("created_at", nextMonthStart);
 
-  if (requestError) throw requestError;
+    if (monthlyError) throw monthlyError;
 
- return res.send(`
-  <!DOCTYPE html>
-  <html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Solicitud enviada</title>
-  </head>
-  <body style="font-family:Arial,sans-serif;background:#f5f7fb;padding:40px;">
-    <div style="max-width:700px;margin:0 auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);text-align:center;">
-      <h1 style="color:#0b5ed7;margin-top:0;">Solicitud enviada</h1>
-      <p style="font-size:17px;color:#374151;line-height:1.6;">
-        Ya alcanzaste el límite de <b>2 campañas en este mes</b>.
-      </p>
-      <p style="font-size:16px;color:#6b7280;line-height:1.6;">
-        Tu solicitud fue enviada al administrador para revisión.
-      </p>
-      <a href="/organizers/${organizerId}/panel" style="
-        display:inline-block;
-        margin-top:16px;
-        background:#16a34a;
-        color:white;
-        text-decoration:none;
-        padding:12px 18px;
-        border-radius:10px;
-        font-weight:700;
-      ">Volver al panel</a>
-    </div>
-  </body>
-  </html>
-`);
-}
-    const { data: rifa, error } = await supabase
-  .from("rifas")
-  .insert({
-    owner_id: organizer.profile_id,
-    title,
-    prize,
-    description,
-    modality,
-    price_per_ticket: pricePerTicket,
-    max_tickets: maxTickets,
-    sold_tickets: 0,
-    available_tickets: maxTickets,
-    draw_date: drawDate.toISOString(),
-    status: "pending",
-    slug,
-  })
-  .select()
-  .single();
+    const monthlyCount = (monthlyCampaigns || []).length;
 
-    if (error) throw error;
+    if (monthlyCount >= 2) {
+      const { error: requestError } = await supabase
+        .from("campaign_requests")
+        .insert({
+          organizer_id: organizerId,
+          requested_title: title,
+          requested_prize: prize,
+          requested_description: description,
+          requested_draw_provider: drawProvider,
+          requested_draw_mode: drawMode,
+          requested_modality: drawMode,
+          requested_price_per_ticket: pricePerTicket,
+          requested_max_tickets: maxTickets,
+          requested_draw_date: drawDate.toISOString(),
+          status: "pending"
+        });
+
+      if (requestError) throw requestError;
+
+      return res.send(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Solicitud enviada</title>
+      </head>
+      <body style="font-family:Arial,sans-serif;background:#f5f7fb;padding:40px;">
+        <div style="max-width:700px;margin:0 auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08);text-align:center;">
+          <h1 style="color:#0b5ed7;margin-top:0;">Solicitud enviada</h1>
+          <p style="font-size:17px;color:#374151;line-height:1.6;">
+            Ya alcanzaste el límite de <b>2 campañas en este mes</b>.
+          </p>
+          <p style="font-size:16px;color:#6b7280;line-height:1.6;">
+            Tu solicitud fue enviada al administrador para revisión.
+          </p>
+          <a href="/organizers/${organizerId}/panel" style="
+            display:inline-block;
+            margin-top:16px;
+            background:#16a34a;
+            color:white;
+            text-decoration:none;
+            padding:12px 18px;
+            border-radius:10px;
+            font-weight:700;
+          ">Volver al panel</a>
+        </div>
+      </body>
+      </html>
+      `);
+    }
+
+    const { error: insertError } = await supabase
+      .from("rifas")
+      .insert({
+        owner_id: organizer.profile_id,
+        title,
+        prize,
+        description,
+        draw_provider: drawProvider,
+        draw_mode: drawMode,
+        modality: drawMode,
+        price_per_ticket: pricePerTicket,
+        max_tickets: maxTickets,
+        sold_tickets: 0,
+        available_tickets: maxTickets,
+        draw_date: drawDate.toISOString(),
+        status: "pending",
+        slug,
+        result_value: null,
+        result_loaded_manually: false
+      });
+
+    if (insertError) throw insertError;
 
     return res.redirect(`/organizers/${organizerId}/panel`);
   } catch (e) {
