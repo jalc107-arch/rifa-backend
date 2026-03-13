@@ -2585,7 +2585,7 @@ ${estadoTexto}
             </div>
           </div>
 
-         <a
+   <a
 href="https://wa.me/?text=${encodeURIComponent(
 '🎁 Participa en esta campaña\n\n' +
 'Premio: ' + (rifa.prize || 'Premio') + '\n' +
