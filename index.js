@@ -2088,7 +2088,7 @@ const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOS
 const { data: monthlyCampaigns, error: monthlyError } = await supabase
   .from("rifas")
   .select("id")
-  .eq("owner_id", organizerId)
+  .eq("owner_id", organizer.profile_id)
   .gte("created_at", monthStart)
   .lt("created_at", nextMonthStart);
 
