@@ -994,6 +994,7 @@ if (!maxTickets || Number(maxTickets) <= 0) {
         title,
         prize,
         description,
+        draw_provider: drawProvider,
         modality,
         price_per_ticket: pricePerTicket,
         max_tickets: maxTickets,
