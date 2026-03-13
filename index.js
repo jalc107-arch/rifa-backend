@@ -79,6 +79,32 @@ function slugify(text) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 }
+function getDayNameEs(date) {
+  const days = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
+  return days[date.getDay()];
+}
+
+function getAllowedDays(drawProvider) {
+  const map = {
+    baloto: ["lunes", "miercoles", "viernes"],
+    loteria_meta: ["miercoles"],
+    loteria_bogota: ["jueves"],
+    loteria_medellin: ["viernes"],
+    loteria_boyaca: ["sabado"],
+    loteria_tolima: ["lunes"],
+    loteria_manizales: ["miercoles"],
+    loteria_cauca: ["sabado"],
+    loteria_huila: ["martes"],
+    loteria_santander: ["viernes"],
+    loteria_cruz_roja: ["martes"],
+    loteria_risaralda: ["viernes"],
+    loteria_quindio: ["jueves"],
+    loteria_narino: ["sabado"],
+    loteria_valle: ["miercoles"]
+  };
+
+  return map[drawProvider] || [];
+}
 function getMaxTickets(drawProvider, drawMode) {
   if (drawProvider === "baloto") {
     if (drawMode === "baloto_2") return 903;
