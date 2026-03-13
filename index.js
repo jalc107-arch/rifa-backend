@@ -1236,7 +1236,9 @@ const totalOrganizador = totalRecaudado - totalComision;
         <a href="${base}/panel" style="display:inline-block;margin-bottom:10px;color:#2563eb;text-decoration:none;font-weight:700;">← Volver al panel</a>
         <h1 style="margin:0;">${rifa.title}</h1>
         <div style="margin-top:6px;color:#475569;">Premio: <b>${rifa.prize || ""}</b></div>
-        <div style="margin-top:6px;color:#475569;">Estado: <b>${rifa.status || ""}</b></div>
+<div style="margin-top:6px;color:#475569;">Sorteo: <b>${getDrawProviderLabel(rifa.draw_provider)}</b></div>
+<div style="margin-top:6px;color:#475569;">Modalidad: <b>${getDrawModeLabel(rifa.draw_mode || rifa.modality)}</b></div>
+<div style="margin-top:6px;color:#475569;">Estado: <b>${rifa.status || ""}</b></div>
       </div>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
