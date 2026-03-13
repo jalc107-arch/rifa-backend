@@ -909,8 +909,9 @@ console.log("profile_id:", organizer.profile_id);
     const description = String(req.body.description || "").trim();
     const modality = Number(req.body.modality || 3);
     const pricePerTicket = Number(req.body.price_per_ticket || 0);
-    const maxTickets = Number(req.body.max_tickets || 0);
-    const drawDateRaw = String(req.body.draw_date || "").trim();
+    const drawMode = req.body.draw_mode;
+    const drawProvider = req.body.draw_provider;
+    const maxTickets = getMaxTickets(drawProvider, drawMode);
 
        if (!title || !prize || !drawDateRaw) {
       return res.status(400).send("Faltan campos obligatorios");
