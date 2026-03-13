@@ -1226,15 +1226,16 @@ const totalOrganizador = totalRecaudado - totalComision;
       <form method="POST" action="${base}/panel/rifa/${rifa.id}/sorteo">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
           <div style="flex:1;min-width:240px;">
-            <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">Combinación ganadora</label>
-            <input
-              type="text"
-              name="winning_combination"
-              placeholder="Ej: 12-40-41"
-              required
-              style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
-            />
-          </div>
+            <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">
+  ${String(rifa.draw_provider || "").startsWith("loteria_") ? "Resultado oficial de 4 cifras" : "Combinación ganadora"}
+</label>
+<input
+  type="text"
+  name="winning_combination"
+  placeholder="${String(rifa.draw_provider || "").startsWith("loteria_") ? "Ej: 5837" : "Ej: 12-40-41"}"
+  required
+  style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
+/>
 
           <button
             type="submit"
