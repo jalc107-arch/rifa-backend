@@ -35,13 +35,47 @@ app.get("/probar-pago", async (req, res) => {
     console.error("ERROR MERCADO PAGO:", error);
     return res.status(500).send(error.message);
   }
-});app.post("/webhook/mercadopago", async (req, res) => {
-  try {
-    console.log("WEBHOOK MP:", JSON.stringify(req.body, null, 2));
-    return res.status(200).send("ok");
-  } catch (e) {
-    return res.status(500).send(e.message);
+});
+app.post("/webhook/mercadopago", async (req, res) => {
+
+  const data = req.body;
+
+  console.log("WEBHOOK MP:", data);
+
+  if (data.type === "payment") {
+
+    const paymentId = data.data.id;
+
+    try {
+
+      const response = await fetch(
+        `https://api.mercadopago.com/v1/payments/${paymentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
+          }
+        }
+      );
+
+      const payment = await response.json();
+
+      console.log("DETALLE PAGO:", payment);
+
+      if (payment.status === "approved") {
+        console.log("PAGO APROBADO");
+
+        const email = payment.payer?.email || null;
+        console.log("Comprador:", email);
+      }
+
+    } catch (error) {
+      console.error("ERROR consultando pago:", error);
+    }
+
   }
+
+  res.sendStatus(200);
+
 });
 
 
