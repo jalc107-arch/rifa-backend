@@ -137,8 +137,8 @@ const { rifa_id, quantity, precio, buyer_name, buyer_phone, buyer_email } = req.
     items: [
       {
         title: "Cupón Rifa",
-        quantity: Number(req.body.quantity),
-        unit_price: Number(req.body.precio),
+        quantity: Number(quantity),
+        unit_price: Number(precio),
         currency_id: "COP"
       }
     ],
