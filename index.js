@@ -67,7 +67,36 @@ app.post("/webhook/mercadopago", async (req, res) => {
         const email = payment.payer?.email || null;
         console.log("Comprador:", email);
       }
+// buscar un ticket disponible
+const { data: ticket, error } = await supabase
+  .from("tickets")
+  .select("*")
+  .is("order_id", null)
+  .limit(1)
+  .single();
 
+if (error || !ticket) {
+  console.log("No hay tickets disponibles");
+  return;
+}
+
+// crear orden
+const { data: order } = await supabase
+  .from("orders")
+  .insert({
+    buyer_email: email,
+    payment_id: payment.id
+  })
+  .select()
+  .single();
+
+// asignar ticket
+await supabase
+  .from("tickets")
+  .update({ order_id: order.id })
+  .eq("id", ticket.id);
+
+console.log("TICKET ASIGNADO:", ticket.id);
     } catch (error) {
       console.error("ERROR consultando pago:", error);
     }
