@@ -13,6 +13,30 @@ const app = express();
 app.use(express.json());
 app.set("trust proxy", 1);
 
+app.get("/probar-pago", async (req, res) => {
+  try {
+    const preference = new Preference(mpClient);
+
+    const response = await preference.create({
+      body: {
+        items: [
+          {
+            title: "Cupón Rifa",
+            quantity: 1,
+            unit_price: 10000,
+            currency_id: "COP"
+          }
+        ]
+      }
+    });
+
+    return res.redirect(response.init_point);
+  } catch (error) {
+    console.error("ERROR MERCADO PAGO:", error);
+    return res.status(500).send(error.message);
+  }
+});
+
 app.post("/crear-pago", async (req, res) => {
 
   try {
