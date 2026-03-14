@@ -275,14 +275,22 @@ function getMaxTickets(drawProvider, drawMode) {
   return 0;
 }
 
-function getWinningValueFromResult(drawMode, resultValue) {
-  function getDrawProviderLabel(drawProvider) {
+function getDrawProviderLabel(drawProvider) {
   if (drawProvider === "baloto") return "Baloto";
   if (drawProvider === "loteria_meta") return "Lotería del Meta";
   if (drawProvider === "loteria_bogota") return "Lotería de Bogotá";
   if (drawProvider === "loteria_medellin") return "Lotería de Medellín";
   if (drawProvider === "loteria_boyaca") return "Lotería de Boyacá";
   if (drawProvider === "loteria_tolima") return "Lotería del Tolima";
+  if (drawProvider === "loteria_manizales") return "Lotería de Manizales";
+  if (drawProvider === "loteria_cauca") return "Lotería del Cauca";
+  if (drawProvider === "loteria_huila") return "Lotería del Huila";
+  if (drawProvider === "loteria_santander") return "Lotería de Santander";
+  if (drawProvider === "loteria_cruz_roja") return "Lotería de la Cruz Roja";
+  if (drawProvider === "loteria_risaralda") return "Lotería de Risaralda";
+  if (drawProvider === "loteria_quindio") return "Lotería del Quindío";
+  if (drawProvider === "loteria_narino") return "Lotería de Nariño";
+  if (drawProvider === "loteria_valle") return "Lotería del Valle";
   return drawProvider || "-";
 }
 
@@ -301,6 +309,8 @@ function getDrawModeLabel(drawMode) {
 
   return drawMode || "-";
 }
+
+function getWinningValueFromResult(drawMode, resultValue) {
   const clean = String(resultValue || "").replace(/\D/g, "");
 
   if (drawMode === "loteria_2_primeras") return clean.slice(0, 2);
