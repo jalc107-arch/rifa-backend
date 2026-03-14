@@ -67,36 +67,54 @@ app.post("/webhook/mercadopago", async (req, res) => {
         const email = payment.payer?.email || null;
         console.log("Comprador:", email);
       }
-// buscar un ticket disponible
-const { data: ticket, error } = await supabase
-  .from("tickets")
-  .select("*")
-  .is("order_id", null)
-  .limit(1)
-  .single();
+console.log("PAGO APROBADO");
 
-if (error || !ticket) {
-  console.log("No hay tickets disponibles");
-  return;
+const externalReference =
+  payment.external_reference ||
+  payment.metadata?.external_reference ||
+  null;
+
+console.log("REFERENCE MP:", externalReference);
+
+if (!externalReference) {
+  console.log("No llegó external_reference en el pago");
+  return res.sendStatus(200);
 }
 
-// crear orden
-const { data: order } = await supabase
-  .from("orders")
-  .insert({
-    buyer_email: email,
-    payment_id: payment.id
-  })
-  .select()
-  .single();
+const { data: paymentRow, error: paymentRowError } = await supabase
+  .from("payments")
+  .select("*")
+  .eq("external_reference", externalReference)
+  .maybeSingle();
 
-// asignar ticket
+if (paymentRowError) {
+  console.error("Error buscando payment en Supabase:", paymentRowError);
+  return res.sendStatus(200);
+}
+
+if (!paymentRow) {
+  console.log("No se encontró payment en Supabase para esa referencia");
+  return res.sendStatus(200);
+}
+
+console.log("PAYMENT ROW:", paymentRow.id, "ORDER:", paymentRow.order_id);
+
 await supabase
-  .from("tickets")
-  .update({ order_id: order.id })
-  .eq("id", ticket.id);
+  .from("payments")
+  .update({
+    status: payment.status,
+    provider_payment_id: String(payment.id)
+  })
+  .eq("id", paymentRow.id);
 
-console.log("TICKET ASIGNADO:", ticket.id);
+await supabase
+  .from("orders")
+  .update({
+    payment_status: "paid"
+  })
+  .eq("id", paymentRow.order_id);
+
+console.log("ORDEN MARCADA COMO PAGADA:", paymentRow.order_id);
     } catch (error) {
       console.error("ERROR consultando pago:", error);
     }
