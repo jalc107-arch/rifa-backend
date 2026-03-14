@@ -35,7 +35,15 @@ app.get("/probar-pago", async (req, res) => {
     console.error("ERROR MERCADO PAGO:", error);
     return res.status(500).send(error.message);
   }
+});app.post("/webhook/mercadopago", async (req, res) => {
+  try {
+    console.log("WEBHOOK MP:", JSON.stringify(req.body, null, 2));
+    return res.status(200).send("ok");
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
 });
+
 
 app.post("/crear-pago", async (req, res) => {
 
