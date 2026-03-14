@@ -1,7 +1,7 @@
-import mercadopago from "mercadopago";
+import { MercadoPagoConfig } from "mercadopago";
 
-mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN
 });
 import express from "express";
 import crypto from "crypto";
