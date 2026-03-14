@@ -13,6 +13,38 @@ const app = express();
 app.use(express.json());
 app.set("trust proxy", 1);
 
+app.post("/crear-pago", async (req, res) => {
+
+  try {
+
+    const preference = new Preference(mpClient);
+
+    const response = await preference.create({
+      body: {
+        items: [
+          {
+            title: "Cupón Rifa",
+            quantity: 1,
+            unit_price: 10000,
+            currency_id: "COP"
+          }
+        ]
+      }
+    });
+
+    res.json({
+      url: response.init_point
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Error creando pago"
+    });
+  }
+
+});
+
 const ADMIN_KEY = process.env.ADMIN_KEY || "promoclaras_admin_2026";
 
 app.use(session({
