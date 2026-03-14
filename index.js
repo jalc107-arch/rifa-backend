@@ -133,22 +133,26 @@ const { rifa_id, quantity, precio, buyer_name, buyer_phone, buyer_email } = req.
     const preference = new Preference(mpClient);
 
     const response = await preference.create({
-      body: {
-        items: [
-          {
-            title: "Cupón Rifa",
-            quantity: Number(req.body.quantity),
-            unit_price: Number(req.body.precio),
-            currency_id: "COP"
-          }
-        ]
+  body: {
+    items: [
+      {
+        title: "Cupón Rifa",
+        quantity: Number(req.body.quantity),
+        unit_price: Number(req.body.precio),
+        currency_id: "COP"
       }
-    });
+    ],
+    payer: {
+      name: req.body.buyer_name,
+      email: req.body.buyer_email || "test@test.com"
+    }
+  }
+});
 
    return res.redirect(response.init_point);
 
   } catch (error) {
-    console.error(error);
+    console.error("ERROR MERCADOPAGO:", error.message);
     res.status(500).json({
       error: "Error creando pago"
     });
