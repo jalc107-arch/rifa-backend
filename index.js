@@ -127,7 +127,7 @@ console.log("ORDEN MARCADA COMO PAGADA:", paymentRow.order_id);
 
 
 app.post("/crear-pago", async (req, res) => {
-
+const { rifa_id, quantity, precio, buyer_name, buyer_phone, buyer_email } = req.body;
   try {
 
     const preference = new Preference(mpClient);
@@ -137,17 +137,15 @@ app.post("/crear-pago", async (req, res) => {
         items: [
           {
             title: "Cupón Rifa",
-            quantity: 1,
-            unit_price: 10000,
+            quantity: Number(req.body.quantity),
+            unit_price: Number(req.body.precio),
             currency_id: "COP"
           }
         ]
       }
     });
 
-    res.json({
-      url: response.init_point
-    });
+   return res.redirect(response.init_point);
 
   } catch (error) {
     console.error(error);
