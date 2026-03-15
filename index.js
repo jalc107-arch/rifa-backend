@@ -3055,7 +3055,7 @@ Compartir por WhatsApp
 <input type="email" name="buyer_email">
 
 <label>Cantidad de cupones</label>
-<input type="number" name="quantity" value="1" min="1" required>
+<input type="number" name="quantity" value="1" min="1" max="${disponibles || 1}" required>
 
 <button type="submit">
 Participar en la campaña
