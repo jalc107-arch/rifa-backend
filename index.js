@@ -3100,9 +3100,12 @@ ${estadoTexto}
 <span class="info-label">Fecha del sorteo:</span>
 <span class="info-value">${rifa.draw_date || "Fecha por confirmar"}</span>
 </div>
-
+<div class="info-row">
+<span class="info-label">Fecha del sorteo:</span>
+<span class="info-value">${rifa.draw_date || "Fecha por confirmar"}</span>
 </div>
 
+</div>
   <div class="share-box">
   <a
     href="https://wa.me/?text=${encodeURIComponent(
@@ -3158,6 +3161,29 @@ Participar en la campaña
       </div>
     </div>
   </div>
+<script>
+const fechaCierre = new Date("${rifa.draw_date}");
+
+function actualizarContador(){
+const ahora = new Date();
+const diferencia = fechaCierre - ahora;
+
+if(diferencia <= 0){
+document.getElementById("countdown").innerText = "Campaña finalizada";
+return;
+}
+
+const dias = Math.floor(diferencia / (1000*60*60*24));
+const horas = Math.floor((diferencia / (1000*60*60)) % 24);
+
+document.getElementById("countdown").innerText =
+dias + " días " + horas + " horas";
+}
+
+actualizarContador();
+setInterval(actualizarContador,60000);
+</script>
+
 </body>
 </html>
 `);
