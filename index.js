@@ -37,95 +37,150 @@ app.get("/probar-pago", async (req, res) => {
     return res.status(500).send(error.message);
   }
 });
+
 app.post("/webhook/mercadopago", async (req, res) => {
+  try {
+    const data = req.body;
 
-  const data = req.body;
+    console.log("WEBHOOK MP:", JSON.stringify(data, null, 2));
 
-  console.log("WEBHOOK MP:", data);
-
-  if (data.type === "payment") {
-
-    const paymentId = data.data.id;
-
-    try {
-
-      const response = await fetch(
-        `https://api.mercadopago.com/v1/payments/${paymentId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
-          }
-        }
-      );
-
-      const payment = await response.json();
-
-      console.log("DETALLE PAGO:", payment);
-
-      if (payment.status === "approved") {
-        console.log("PAGO APROBADO");
-
-        const email = payment.payer?.email || null;
-        console.log("Comprador:", email);
-      }
-console.log("PAGO APROBADO");
-
-const externalReference =
-  payment.external_reference ||
-  payment.metadata?.external_reference ||
-  null;
-
-console.log("REFERENCE MP:", externalReference);
-
-if (!externalReference) {
-  console.log("No llegó external_reference en el pago");
-  return res.sendStatus(200);
-}
-
-const { data: paymentRow, error: paymentRowError } = await supabase
-  .from("payments")
-  .select("*")
-  .eq("external_reference", externalReference)
-  .maybeSingle();
-
-if (paymentRowError) {
-  console.error("Error buscando payment en Supabase:", paymentRowError);
-  return res.sendStatus(200);
-}
-
-if (!paymentRow) {
-  console.log("No se encontró payment en Supabase para esa referencia");
-  return res.sendStatus(200);
-}
-
-console.log("PAYMENT ROW:", paymentRow.id, "ORDER:", paymentRow.order_id);
-
-await supabase
-  .from("payments")
-  .update({
-    status: payment.status,
-    provider_payment_id: String(payment.id)
-  })
-  .eq("id", paymentRow.id);
-
-await supabase
-  .from("orders")
-  .update({
-    payment_status: "paid"
-  })
-  .eq("id", paymentRow.order_id);
-
-console.log("ORDEN MARCADA COMO PAGADA:", paymentRow.order_id);
-    } catch (error) {
-      console.error("ERROR consultando pago:", error);
+    if (data.type !== "payment") {
+      return res.sendStatus(200);
     }
 
+    const paymentId = data.data?.id;
+
+    if (!paymentId) {
+      console.log("Webhook sin paymentId");
+      return res.sendStatus(200);
+    }
+
+    const response = await fetch(
+      `https://api.mercadopago.com/v1/payments/${paymentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
+        }
+      }
+    );
+
+    const payment = await response.json();
+
+    console.log("DETALLE PAGO:", JSON.stringify(payment, null, 2));
+
+    if (!response.ok) {
+      console.error("Error consultando pago en MP:", payment);
+      return res.sendStatus(200);
+    }
+
+    const mpStatus = payment.status;
+    const externalReference = payment.external_reference || null;
+
+    console.log("STATUS MP:", mpStatus);
+    console.log("EXTERNAL REFERENCE:", externalReference);
+
+    if (!externalReference) {
+      console.log("No llegó external_reference");
+      return res.sendStatus(200);
+    }
+
+    const { data: paymentRow, error: paymentRowError } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("external_reference", externalReference)
+      .maybeSingle();
+
+    if (paymentRowError) {
+      console.error("Error buscando payment en Supabase:", paymentRowError);
+      return res.sendStatus(200);
+    }
+
+    if (!paymentRow) {
+      console.log("No se encontró payment en Supabase para esa referencia");
+      return res.sendStatus(200);
+    }
+
+    await supabase
+      .from("payments")
+      .update({
+        provider: "mercadopago",
+        provider_payment_id: String(payment.id),
+        status: mpStatus,
+        status_detail: payment.status_detail || null,
+        raw_response: payment,
+        updated_at: now(),
+      })
+      .eq("id", paymentRow.id);
+
+    if (mpStatus === "approved") {
+      await supabase
+        .from("orders")
+        .update({
+          payment_status: "paid",
+          paid_at: now(),
+        })
+        .eq("id", paymentRow.order_id);
+
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .select(`
+          *,
+          rifas(*)
+        `)
+        .eq("id", paymentRow.order_id)
+        .single();
+
+      if (orderError || !order) {
+        console.error("No se encontró la orden:", orderError);
+        return res.sendStatus(200);
+      }
+
+      const modality = order.rifas?.draw_mode || order.rifas?.modality;
+
+      const { error: assignError } = await supabase.rpc("assign_random_tickets", {
+        p_rifa_id: order.rifa_id,
+        p_order_id: order.id,
+        p_qty: order.qty,
+        p_modality: modality,
+      });
+
+      if (assignError) {
+        console.error("assign_random_tickets error:", assignError.message);
+      }
+
+      const { error: messageError } = await supabase.rpc("log_ticket_message", {
+        p_order_id: order.id,
+        p_channel: "whatsapp",
+      });
+
+      if (messageError) {
+        console.error("log_ticket_message error:", messageError.message);
+      }
+
+      try {
+        await sendPurchaseWhatsApp(order.id);
+      } catch (waError) {
+        console.error("sendPurchaseWhatsApp error:", waError.message);
+      }
+
+      console.log("Pago aprobado y cupones asignados:", order.id);
+    }
+
+    if (mpStatus === "rejected" || mpStatus === "cancelled") {
+      await supabase
+        .from("orders")
+        .update({
+          payment_status: "failed",
+        })
+        .eq("id", paymentRow.order_id);
+    }
+
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error("ERROR WEBHOOK MP:", error);
+    return res.sendStatus(200);
   }
-
-  res.sendStatus(200);
-
 });
-
 
 app.post("/crear-pago", async (req, res) => {
   try {
