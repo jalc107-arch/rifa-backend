@@ -128,37 +128,36 @@ console.log("ORDEN MARCADA COMO PAGADA:", paymentRow.order_id);
 
 
 app.post("/crear-pago", async (req, res) => {
-const { rifa_id, quantity, precio, buyer_name, buyer_phone, buyer_email } = req.body;
   try {
+    const { rifa_id, quantity, precio, buyer_name, buyer_phone, buyer_email } = req.body;
 
     const preference = new Preference(mpClient);
 
     const response = await preference.create({
-  body: {
-    items: [
-      {
-        title: "Cupón Rifa",
-        quantity: Number(quantity),
-        unit_price: Number(precio),
-        currency_id: "COP"
+      body: {
+        items: [
+          {
+            title: "Cupón Rifa",
+            quantity: Number(quantity),
+            unit_price: Number(precio),
+            currency_id: "COP"
+          }
+        ],
+        payer: {
+          name: buyer_name,
+          email: buyer_email || "test@test.com"
+        },
+        external_reference: `${rifa_id}|${buyer_phone}|${Date.now()}`
       }
-    ],
-    payer: {
-      name: req.body.buyer_name,
-      email: req.body.buyer_email || "test@test.com"
-    }
-  }
-});
+    });
 
-   return res.redirect(response.init_point);
-
+    return res.redirect(response.init_point);
   } catch (error) {
     console.error("ERROR MERCADOPAGO:", error.message);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Error creando pago"
     });
   }
-
 });
 
 const ADMIN_KEY = process.env.ADMIN_KEY || "promoclaras_admin_2026";
