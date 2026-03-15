@@ -2820,16 +2820,42 @@ color:#2b3a55;
 }
 
 .progress-bg{
-height:12px;
+height:16px;
 background:#e5e7eb;
-border-radius:8px;
+border-radius:10px;
 overflow:hidden;
+margin-top:6px;
 }
 
 .progress-bar{
 height:100%;
 background:linear-gradient(90deg,#22c55e,#16a34a);
 border-radius:8px;
+}
+
+.campaign-info{
+margin-top:16px;
+background:white;
+border-radius:12px;
+padding:14px;
+box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+
+.info-row{
+display:flex;
+justify-content:space-between;
+font-size:14px;
+margin-bottom:6px;
+}
+
+.info-label{
+font-weight:600;
+color:#374151;
+}
+
+.info-value{
+color:#111827;
+font-weight:500;
 }
 
     .badge {
@@ -3062,6 +3088,20 @@ ${estadoTexto}
               </div>
             </div>
           </div>
+
+<div class="campaign-info">
+
+<div class="info-row">
+<span class="info-label">Organiza:</span>
+<span class="info-value">${rifa.organizer_name || "Organizador de la campaña"}</span>
+</div>
+
+<div class="info-row">
+<span class="info-label">Fecha del sorteo:</span>
+<span class="info-value">${rifa.draw_date || "Fecha por confirmar"}</span>
+</div>
+
+</div>
 
   <div class="share-box">
   <a
