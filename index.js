@@ -3039,7 +3039,7 @@ Compartir por WhatsApp
           <div class="card">
             <h2 class="section-title">Adquiere tus cupones de participación</h2>
 
-            <form action="/crear-pago" method="POST">
+<form action="/crear-pago" method="POST">
 
 <input type="hidden" name="rifa_id" value="${rifa.id}">
 <input type="hidden" name="precio" value="${rifa.price_per_ticket}">
@@ -3056,7 +3056,7 @@ Compartir por WhatsApp
 <label>Cantidad de cupones</label>
 <input type="number" name="quantity" value="1" min="1" max="${disponibles || 1}" required>
 
-<button type="submit">
+<button type="submit" class="buy-btn">
 Participar en la campaña
 </button>
 
