@@ -3003,12 +3003,7 @@ ${estadoTexto}
     <div class="content">
       <div class="content-grid">
         <div>
-          <div class="hero">
-  <div class="badge">${estadoTexto}</div>
-  <div class="title">${rifa.title}</div>
-  <div class="prize">Premio: ${rifa.prize || "Premio no definido"}</div>
-</div>
-
+         
             <div class="stats">
               <div class="stat">
                 <div class="stat-label">Boleta</div>
