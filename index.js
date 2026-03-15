@@ -3064,8 +3064,8 @@ Participar en la campaña
 </form>
 
             <div class="small-text">
-              Al continuar, serás redirigido a la pasarela de pago segura de Wompi.
-            </div>
+  Al continuar, serás redirigido a la pasarela de pago segura de Mercado Pago.
+</div>
           </div>
         </div>
       </div>
