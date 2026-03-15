@@ -2791,6 +2791,47 @@ res.send(`
       box-shadow: 0 10px 30px rgba(0,0,0,.15);
     }
 
+.share-box{
+margin-top:14px;
+}
+
+.wa-btn{
+display:block;
+width:100%;
+text-align:center;
+background:#25D366;
+color:white;
+text-decoration:none;
+border-radius:12px;
+padding:12px 14px;
+font-size:16px;
+font-weight:700;
+margin-top:10px;
+box-shadow:0 8px 18px rgba(37,211,102,.25);
+}
+
+.notice{
+margin-top:12px;
+padding:12px;
+background:#eef3ff;
+border-radius:10px;
+font-size:13px;
+color:#2b3a55;
+}
+
+.progress-bg{
+height:12px;
+background:#e5e7eb;
+border-radius:8px;
+overflow:hidden;
+}
+
+.progress-bar{
+height:100%;
+background:linear-gradient(90deg,#22c55e,#16a34a);
+border-radius:8px;
+}
+
     .badge {
       display: inline-block;
       background: rgba(255,255,255,.18);
