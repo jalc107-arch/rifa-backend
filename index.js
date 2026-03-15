@@ -134,22 +134,21 @@ app.post("/crear-pago", async (req, res) => {
     const preference = new Preference(mpClient);
 
     const response = await preference.create({
-      body: {
-        items: [
-          {
-            title: "Cupón Rifa",
-            quantity: Number(quantity),
-            unit_price: Number(precio),
-            currency_id: "COP"
-          }
-        ],
-        payer: {
-          name: buyer_name,
-          email: buyer_email || "test@test.com"
-        },
-        external_reference: `${rifa_id}|${buyer_phone}|${Date.now()}`
-      }
-    });
+     body: {
+  items: [
+    {
+      title: "Cupón Rifa",
+      quantity: Number(quantity),
+      unit_price: Number(precio),
+      currency_id: "COP"
+    }
+  ],
+  payer: {
+    name: buyer_name,
+    email: buyer_email || "test@test.com"
+  },
+  external_reference: `${rifa_id}|${buyer_phone}|${Date.now()}`
+}
 
     return res.redirect(response.init_point);
   } catch (error) {
