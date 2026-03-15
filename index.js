@@ -3010,12 +3010,7 @@ ${estadoTexto}
                 <div class="stat-value price">$${Number(rifa.price_per_ticket || 0).toLocaleString("es-CO")}</div>
               </div>
 
-                <div class="stat">
-                <div class="stat-label">Disponibles</div>
-                <div class="stat-value">${disponibles}</div>
-              </div>
-
-             
+                             
             <div class="progress-wrap">
               <div class="progress-label">
                 <span>Progreso de ventas</span>
