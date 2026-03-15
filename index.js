@@ -204,7 +204,7 @@ app.post("/crear-pago", async (req, res) => {
   },
   external_reference: `${rifa_id}|${buyer_phone}|${Date.now()}`
 }
-
+});
     return res.redirect(response.init_point);
   } catch (error) {
     console.error("ERROR MERCADOPAGO:", error.message);
