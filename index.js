@@ -4792,6 +4792,67 @@ if (key !== ADMIN_KEY) {
 
       </div>
 
+      <h2>Cargar resultados oficiales de loterías</h2>
+
+<div style="
+  background:white;
+  padding:18px;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  margin-bottom:24px;
+">
+  <form method="POST" action="/admin/resultados-loterias?key=${encodeURIComponent(ADMIN_KEY)}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+
+      <div>
+        <label style="display:block;font-weight:700;margin-bottom:6px;">Lotería</label>
+        <select name="lottery_code" required style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;">
+          <option value="">Selecciona</option>
+          <option value="loteria_meta">Lotería del Meta</option>
+          <option value="loteria_bogota">Lotería de Bogotá</option>
+          <option value="loteria_medellin">Lotería de Medellín</option>
+          <option value="loteria_boyaca">Lotería de Boyacá</option>
+          <option value="loteria_tolima">Lotería del Tolima</option>
+          <option value="loteria_manizales">Lotería de Manizales</option>
+          <option value="loteria_cauca">Lotería del Cauca</option>
+          <option value="loteria_huila">Lotería del Huila</option>
+          <option value="loteria_santander">Lotería de Santander</option>
+          <option value="loteria_cruz_roja">Lotería de la Cruz Roja</option>
+          <option value="loteria_risaralda">Lotería de Risaralda</option>
+          <option value="loteria_quindio">Lotería del Quindío</option>
+          <option value="loteria_narino">Lotería de Nariño</option>
+          <option value="loteria_valle">Lotería del Valle</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="display:block;font-weight:700;margin-bottom:6px;">Fecha del sorteo</label>
+        <input type="date" name="draw_date" required style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;">
+      </div>
+
+      <div>
+        <label style="display:block;font-weight:700;margin-bottom:6px;">Resultado oficial (4 cifras)</label>
+        <input type="text" name="result_value" maxlength="4" required placeholder="Ej: 5837"
+          style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;">
+      </div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button type="submit" style="
+        background:#2563eb;
+        color:white;
+        border:none;
+        padding:12px 16px;
+        border-radius:10px;
+        font-weight:700;
+        cursor:pointer;
+      ">
+        Guardar resultado
+      </button>
+    </div>
+  </form>
+</div>
+
       <h2>Organizadores por aprobar</h2>
      ${(organizersPending || []).map(o => `
   <div style="
