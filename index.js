@@ -2725,17 +2725,16 @@ app.get("/resultado/:slug", async (req, res) => {
 app.get("/rifa-publica/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
-
     const { data: rifa, error } = await supabase
-      .from("rifas")
-      .select(`
-  *,
-  organizers:organizer_id (
-    full_name
-  )
-`)
-      .eq("id", rifaId)
-      .single();
+  .from("rifas")
+  .select(`
+    *,
+    organizers:organizer_id (
+      full_name
+    )
+  `)
+  .eq("id", rifaId)
+  .single();
 
 if (error || !rifa) {
   return res.status(404).send("Rifa no existe");
