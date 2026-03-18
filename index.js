@@ -1025,6 +1025,9 @@ if (totalBoughtByPhone + qty > 50) {
   `;
 
   return res.send(formHtml);
+    } catch (e) {
+  return res.status(500).send(e.message);
+}
 });
 app.get("/crear-rifa", async (req, res) => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
