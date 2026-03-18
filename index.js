@@ -979,8 +979,6 @@ if (totalBoughtByPhone + qty > 50) {
     }
 
    const externalReference = `${rifaId}|${buyerPhone}|${Date.now()}`;
-
-try {
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -1027,11 +1025,6 @@ try {
   `;
 
   return res.send(formHtml);
-
-} catch (error) {
-  console.error("Error creando orden:", error);
-  return res.status(500).send(error.message);
-}
 });
 app.get("/crear-rifa", async (req, res) => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
