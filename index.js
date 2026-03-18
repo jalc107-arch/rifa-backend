@@ -3093,16 +3093,17 @@ ${estadoTexto}
 
 <div class="info-row">
 <span class="info-label">Organiza:</span>
-<span class="info-value">${rifa.organizer_name || "Organizador de la campaña"}</span>
+<span class="info-value">${rifa.organizer_full_name || rifa.organizer_name || rifa.full_name || "Organizador verificado"}</span>
 </div>
 
 <div class="info-row">
 <span class="info-label">Fecha del sorteo:</span>
-<span class="info-value">${rifa.draw_date || "Fecha por confirmar"}</span>
+<span class="info-value">${rifa.draw_date ? new Date(rifa.draw_date).toLocaleString("es-CO") : "Fecha por confirmar"}</span>
 </div>
+
 <div class="info-row">
-<span class="info-label">Fecha del sorteo:</span>
-<span class="info-value">${rifa.draw_date || "Fecha por confirmar"}</span>
+<span class="info-label">Cierre de campaña:</span>
+<span class="info-value" id="countdown">Calculando...</span>
 </div>
 
 </div>
