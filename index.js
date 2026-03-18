@@ -3098,7 +3098,7 @@ ${estadoTexto}
 <div class="info-row">
 <span class="info-label">Organiza:</span>
 <span class="info-value">
-${rifa.organizers?.full_name || "Organizador verificado"}
+${rifa.organizers && rifa.organizers.full_name ? rifa.organizers.full_name : "Organizador verificado"}
 </span>
 </div>
 
