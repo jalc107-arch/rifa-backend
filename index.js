@@ -2727,12 +2727,7 @@ app.get("/rifa-publica/:rifaId", async (req, res) => {
     const { rifaId } = req.params;
     const { data: rifa, error } = await supabase
   .from("rifas")
-  .select(`
-    *,
-    organizers:organizer_id (
-      full_name
-    )
-  `)
+  .select("*")
   .eq("id", rifaId)
   .single();
 
