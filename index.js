@@ -978,54 +978,60 @@ if (totalBoughtByPhone + qty > 50) {
       buyer = newBuyer;
     }
 
-    const reference = genReference();
+   const externalReference = `${rifaId}|${buyerPhone}|${Date.now()}`;
 
-    try {
+try {
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .insert({
+      rifa_id: rifaId,
+      buyer_id: buyer.id,
+      qty,
+      subtotal: total,
+      total_paid: total,
+      commission,
+      payment_status: "created",
+    })
+    .select()
+    .single();
 
-      // 1. Crear orden
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          rifa_id: rifaId,
-          buyer_id: buyer.id,
-          qty,
-          subtotal: total,
-          total_paid: total,
-          commission,
-          payment_status: "created",
-        })
-        .select()
-        .single();
+  if (orderError) throw orderError;
 
-      if (orderError) throw orderError;
+  const { error: paymentInsertError } = await supabase
+    .from("payments")
+    .insert({
+      order_id: order.id,
+      provider: "mercadopago",
+      external_reference: externalReference,
+      amount: total,
+      status: "pending",
+    });
 
-      // 2. Registrar pago
-      const { error: paymentInsertError } = await supabase
-        .from("payments")
-        .insert({
-          order_id: order.id,
-          provider: "wompi",
-          external_reference: reference,
-          amount: total,
-          status: "CREATED",
-        });
+  if (paymentInsertError) throw paymentInsertError;
 
-      if (paymentInsertError) throw paymentInsertError;
+  const formHtml = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <body onload="document.forms[0].submit()">
+      <form action="/crear-pago" method="POST">
+        <input type="hidden" name="rifa_id" value="${rifaId}">
+        <input type="hidden" name="quantity" value="${qty}">
+        <input type="hidden" name="precio" value="${rifa.price_per_ticket}">
+        <input type="hidden" name="buyer_name" value="${buyerName}">
+        <input type="hidden" name="buyer_phone" value="${buyerPhone}">
+        <input type="hidden" name="buyer_email" value="${buyerEmail || ""}">
+      </form>
+      <p>Redirigiendo a Mercado Pago...</p>
+    </body>
+    </html>
+  `;
 
-      // 3. Redirigir a pago
-      const base = getBaseUrl(req);
-      const pagarUrl = `${base}/rifas/${rifaId}/orden/${order.id}/pagar?reference=${reference}`;
+  return res.send(formHtml);
 
-      return res.redirect(pagarUrl);
-
-    } catch (error) {
-      console.error("Error creando orden:", error);
-      return res.status(500).send(error.message);
-    }
-
-  } catch (e) {
-    return res.status(500).send(e.message);
-  }
+} catch (error) {
+  console.error("Error creando orden:", error);
+  return res.status(500).send(error.message);
+}
 });
 app.get("/crear-rifa", async (req, res) => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -1128,6 +1134,7 @@ console.log("profile_id:", organizer.profile_id);
     const drawMode = req.body.draw_mode;
     const drawProvider = req.body.draw_provider;
     const maxTickets = getMaxTickets(drawProvider, drawMode);
+    const drawDateRaw = String(req.body.draw_date || "").trim();
 
        if (!title || !prize || !drawDateRaw) {
       return res.status(400).send("Faltan campos obligatorios");
