@@ -2364,7 +2364,7 @@ const { data: lotteries } = await supabase
 
       <div style="margin-bottom:18px;">
         <label><b>Fecha del sorteo</b></label><br/>
-        <input type="datetime-local" name="draw_date" required
+        <input type="date" name="draw_date" required
           style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin-top:6px;box-sizing:border-box;" />
       </div>
 
