@@ -4209,12 +4209,11 @@ app.post(
 
 app.get("/admin/organizadores", async (req, res) => {
   try {
-
     const key = String(req.query.key || "");
-if (key !== ADMIN_KEY) {
-  return res.status(403).send("Acceso no autorizado");
-}
-    
+    if (key !== ADMIN_KEY) {
+      return res.status(403).send("Acceso no autorizado");
+    }
+
     const { data: organizers, error } = await supabase
       .from("organizers")
       .select("*")
@@ -4232,7 +4231,6 @@ if (key !== ADMIN_KEY) {
         background:white;
       ">
         <h3 style="margin-top:0">${o.full_name || "Organizador"}</h3>
-
         <div><b>Email:</b> ${o.email}</div>
         <div><b>Cédula:</b> ${o.document_number || "-"}</div>
 
@@ -4252,8 +4250,7 @@ if (key !== ADMIN_KEY) {
         </div>
 
         <div style="margin-top:14px">
-
-          <form method="POST" action="/admin/organizadores/${o.id}/aprobar" style="display:inline;">
+          <form method="POST" action="/admin/organizadores/${o.id}/aprobar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;">
             <button style="
               background:#16a34a;
               border:none;
@@ -4265,7 +4262,7 @@ if (key !== ADMIN_KEY) {
             ">Aprobar</button>
           </form>
 
-          <form method="POST" action="/admin/organizadores/${o.id}/rechazar" style="display:inline;margin-left:8px;">
+          <form method="POST" action="/admin/organizadores/${o.id}/rechazar?key=${encodeURIComponent(ADMIN_KEY)}" style="display:inline;margin-left:8px;">
             <button style="
               background:#dc2626;
               border:none;
@@ -4276,7 +4273,6 @@ if (key !== ADMIN_KEY) {
               font-weight:600;
             ">Rechazar</button>
           </form>
-
         </div>
       </div>
     `).join("");
@@ -4288,15 +4284,11 @@ if (key !== ADMIN_KEY) {
         <title>Verificación de organizadores</title>
       </head>
       <body style="font-family:Arial;background:#f5f7fb;padding:40px">
-
         <h1>Organizadores pendientes</h1>
-
         ${cards || "<p>No hay organizadores pendientes.</p>"}
-
       </body>
       </html>
     `);
-
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -4374,7 +4366,6 @@ app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), a
 
     for (const rifa of (rifas || [])) {
       const winningValue = getWinningValueFromResult(rifa.draw_mode, result_value);
-
       if (!winningValue) continue;
 
       const { data: winnerTicket, error: winnerError } = await supabase
