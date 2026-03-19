@@ -1179,7 +1179,7 @@ const comisionGeneral = (totalComisionGeneral.data || []).reduce((acc, o) => {
         <div style="margin-top:6px;color:#64748b;">Resumen general de rifas creadas</div>
       </div>
 
-      <a href="${base}/crear-rifa"
+      <a href="/organizers/login"
          style="background:#16a34a;color:white;text-decoration:none;padding:12px 16px;border-radius:10px;font-weight:700;">
         + Crear rifa
       </a>
