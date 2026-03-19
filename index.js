@@ -4626,7 +4626,8 @@ const { data: rifas, error: rifasError } = await supabase
   .select("*")
   .eq("status", "approved")
   .eq("draw_provider", lottery_code)
-  .like("draw_date", `${dateOnly}%`);
+  .gte("draw_date", `${dateOnly}T00:00:00`)
+.lte("draw_date", `${dateOnly}T23:59:59`);
 
 if (rifasError) throw rifasError;
 
