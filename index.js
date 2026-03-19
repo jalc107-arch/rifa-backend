@@ -4551,8 +4551,7 @@ app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), a
       return res.status(400).send("El resultado debe tener 4 cifras");
     }
 
-    // Guardar resultado
-    const { error } = await supabase
+   const { error } = await supabase
   .from("lottery_results")
   .upsert({
     lottery_code,
@@ -4560,6 +4559,73 @@ app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), a
     result_value,
     loaded_manually: true
   });
+
+if (error) throw error;
+
+// Buscar rifas aprobadas de esa lotería en esa fecha
+const startOfDay = `${draw_date}T00:00:00`;
+const endOfDay = `${draw_date}T23:59:59`;
+
+const { data: rifas, error: rifasError } = await supabase
+  .from("rifas")
+  .select("*")
+  .eq("status", "approved")
+  .eq("draw_provider", lottery_code)
+  .gte("draw_date", startOfDay)
+  .lte("draw_date", endOfDay);
+
+if (rifasError) throw rifasError;
+
+for (const rifa of (rifas || [])) {
+  const winningValue = getWinningValueFromResult(rifa.draw_mode, result_value);
+
+  if (!winningValue) continue;
+
+  const { data: winnerTicket, error: winnerError } = await supabase
+    .from("tickets")
+    .select("*")
+    .eq("rifa_id", rifa.id)
+    .eq("number", winningValue)
+    .eq("payment_status", "approved")
+    .maybeSingle();
+
+  if (winnerError) throw winnerError;
+
+  const updatePayload = {
+    result_value,
+    winning_number: winningValue,
+    result_loaded_manually: true,
+    status: "finished"
+  };
+
+  if (winnerTicket) {
+    updatePayload.winner_ticket_id = winnerTicket.id;
+    updatePayload.winner_buyer_id = winnerTicket.buyer_id || null;
+  }
+
+  const { error: updateRifaError } = await supabase
+    .from("rifas")
+    .update(updatePayload)
+    .eq("id", rifa.id);
+
+  if (updateRifaError) throw updateRifaError;
+
+  if (winnerTicket) {
+    const { error: resultInsertError } = await supabase
+      .from("raffle_results")
+      .upsert({
+        rifa_id: rifa.id,
+        winning_number: winningValue,
+        winning_combination: result_value,
+        winner_ticket_id: winnerTicket.id,
+        winner_buyer_id: winnerTicket.buyer_id || null
+      });
+
+    if (resultInsertError) throw resultInsertError;
+  }
+}
+
+return res.redirect(`/admin?key=${encodeURIComponent(ADMIN_KEY)}`);
 
 if (error) throw error;
 
