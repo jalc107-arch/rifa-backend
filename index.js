@@ -1358,21 +1358,22 @@ const totalOrganizador = totalRecaudado - totalComision;
       </div>
     </div>
 
-    <div style="background:#fff;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
+<div style="background:#fff;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
       <h2 style="margin-top:0;">Realizar sorteo</h2>
       <form method="POST" action="${base}/panel/rifa/${rifa.id}/sorteo">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
           <div style="flex:1;min-width:240px;">
             <label style="display:block;font-size:14px;font-weight:700;margin-bottom:6px;">
-  ${String(rifa.draw_provider || "").startsWith("loteria_") ? "Resultado oficial de 4 cifras" : "Combinación ganadora"}
-</label>
-<input
-  type="text"
-  name="winning_combination"
-  placeholder="${String(rifa.draw_provider || "").startsWith("loteria_") ? "Ej: 5837" : "Ej: 12-40-41"}"
-  required
-  style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
-/>
+              ${String(rifa.draw_provider || "").startsWith("loteria_") ? "Resultado oficial de 4 cifras" : "Combinación ganadora"}
+            </label>
+            <input
+              type="text"
+              name="winning_combination"
+              placeholder="${String(rifa.draw_provider || "").startsWith("loteria_") ? "Ej: 5837" : "Ej: 12-40-41"}"
+              required
+              style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font-size:15px;"
+            />
+          </div>
 
           <button
             type="submit"
