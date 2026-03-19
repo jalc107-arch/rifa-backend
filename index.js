@@ -889,8 +889,7 @@ app.get("/debug/wompi", (req, res) => {
       WOMPI_EVENTS_SECRET: !WOMPI_EVENTS_SECRET,
     },
   });
-});
-
+  
 app.get("/rifas/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
