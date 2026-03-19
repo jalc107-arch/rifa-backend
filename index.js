@@ -4414,15 +4414,7 @@ app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), a
     return res.status(500).send(e.message);
   }
 });
-  if (resultInsertError) throw resultInsertError;
-}
-
-return res.redirect("/admin?key=" + encodeURIComponent(ADMIN_KEY));
-} catch (e) {
-  return res.status(500).send(e.message);
-}
-});
-
+ 
 app.post("/admin/organizadores/:organizerId/rechazar", async (req, res) => {
   try {
     const key = String(req.query.key || "");
