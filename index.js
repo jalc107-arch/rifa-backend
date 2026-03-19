@@ -4723,7 +4723,7 @@ for (const rifa of (rifas || [])) {
   if (resultInsertError) throw resultInsertError;
 }
 
-return res.redirect(`/admin?key=${encodeURIComponent(ADMIN_KEY)}`);
+return res.redirect("/admin?key=" + encodeURIComponent(ADMIN_KEY));
 } catch (e) {
   return res.status(500).send(e.message);
 }
