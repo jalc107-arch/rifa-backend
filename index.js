@@ -2731,50 +2731,96 @@ app.get("/r/:slug", async (req, res) => {
 });
 
 app.get("/resultado/:slug", async (req, res) => {
-  const { slug } = req.params;
+  try {
+    const { slug } = req.params;
 
-  const { data: rifa } = await supabase
-    .from("rifas")
-    .select("*")
-    .eq("slug", slug)
-    .single();
+    const { data: rifa, error } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("slug", slug)
+      .single();
 
-  if (!rifa) {
-    return res.send("Rifa no encontrada");
+    if (error || !rifa) {
+      return res.status(404).send("Resultado no encontrado");
+    }
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Resultado ${rifa.title}</title>
+        <style>
+          body{
+            font-family:Arial,sans-serif;
+            background:#f5f7fb;
+            margin:0;
+            padding:40px;
+          }
+          .card{
+            max-width:600px;
+            margin:auto;
+            background:white;
+            padding:30px;
+            border-radius:16px;
+            box-shadow:0 10px 30px rgba(0,0,0,.08);
+            text-align:center;
+          }
+          .title{
+            font-size:30px;
+            font-weight:800;
+            margin-bottom:10px;
+            color:#0b3d91;
+          }
+          .label{
+            color:#6b7280;
+            font-size:14px;
+            margin-top:18px;
+          }
+          .value{
+            font-size:32px;
+            font-weight:800;
+            margin-top:8px;
+            color:#111827;
+          }
+          .ok{
+            margin-top:24px;
+            font-size:20px;
+            font-weight:700;
+            color:#16a34a;
+          }
+          .no{
+            margin-top:24px;
+            font-size:20px;
+            font-weight:700;
+            color:#dc2626;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="title">${rifa.title}</div>
+
+          <div class="label">Resultado oficial</div>
+          <div class="value">${rifa.result_value || "Pendiente"}</div>
+
+          <div class="label">Número ganador</div>
+          <div class="value">${rifa.winning_number || "-"}</div>
+
+          ${
+            rifa.winner_ticket_id
+              ? `<div class="ok">🎉 Tenemos ganador</div>`
+              : `<div class="no">Aún no hay ganador</div>`
+          }
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (e) {
+    res.status(500).send(e.message);
   }
-
-  const { data: result } = await supabase
-    .from("raffle_results")
-    .select(`
-      *,
-      buyers:winner_buyer_id (
-        full_name,
-        phone
-      )
-    `)
-    .eq("rifa_id", rifa.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  res.send(`
-  <html>
-  <body style="font-family:Arial;background:#f6f7fb;padding:40px">
-    <div style="max-width:600px;margin:auto;background:white;padding:30px;border-radius:16px">
-      <h2>${rifa.title}</h2>
-
-      ${result ? `
-      <h3>Ganador</h3>
-      <p><b>Combinación:</b> ${result.winning_combination}</p>
-      <p><b>Nombre:</b> ${result.buyers?.full_name}</p>
-      <p><b>Teléfono:</b> ${result.buyers?.phone}</p>
-      ` : `
-      <h3>La rifa aún no tiene ganador</h3>
-      `}
-    </div>
-  </body>
-  </html>
-  `);
 });
 
 app.get("/rifa-publica/:rifaId", async (req, res) => {
