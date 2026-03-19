@@ -4669,7 +4669,6 @@ for (const rifa of (rifas || [])) {
       .from("raffle_results")
       .upsert({
         rifa_id: rifa.id,
-        winning_number: winningValue,
         winning_combination: result_value,
         winner_ticket_id: winnerTicket.id,
         winner_buyer_id: winnerTicket.buyer_id || null
