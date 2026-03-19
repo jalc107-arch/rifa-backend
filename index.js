@@ -4532,6 +4532,44 @@ if (key !== ADMIN_KEY) {
   }
 });
 
+app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const key = String(req.query.key || "");
+    if (key !== ADMIN_KEY) {
+      return res.status(403).send("Acceso no autorizado");
+    }
+
+    const lottery_code = String(req.body.lottery_code || "").trim();
+    const draw_date = String(req.body.draw_date || "").trim();
+    const result_value = String(req.body.result_value || "").trim();
+
+    if (!lottery_code || !draw_date || !result_value) {
+      return res.status(400).send("Faltan datos");
+    }
+
+    if (!/^\d{4}$/.test(result_value)) {
+      return res.status(400).send("El resultado debe tener 4 cifras");
+    }
+
+    // Guardar resultado
+    const { error } = await supabase
+      .from("lottery_results")
+      .upsert({
+        lottery_code,
+        draw_date,
+        result_value,
+        loaded_manually: true
+      });
+
+    if (error) throw error;
+
+    return res.redirect(`/admin?key=${encodeURIComponent(ADMIN_KEY)}`);
+
+  } catch (e) {
+    return res.status(500).send(e.message);
+  }
+});
+
 app.post("/admin/organizadores/:organizerId/rechazar", async (req, res) => {
   try {
     const key = String(req.query.key || "");
