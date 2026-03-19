@@ -4204,8 +4204,7 @@ app.post(
     } catch (e) {
       return res.status(500).send(e.message);
     }
-  }
-);
+    });
 
 app.get("/admin/organizadores", async (req, res) => {
   try {
