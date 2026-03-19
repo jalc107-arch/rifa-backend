@@ -895,40 +895,36 @@ app.get("/rifas/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
 
-    const { data, error } = await supabase
+    const { data: rifa, error } = await supabase
       .from("rifa_publica_detalle")
       .select("*")
       .eq("id", rifaId)
       .single();
 
     if (error || !rifa) {
-  return res.status(404).send("Rifa no encontrada");
-}
+      return res.status(404).send("Rifa no encontrada");
+    }
 
-const colombiaNow = new Date(
-  new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
-);
+    const colombiaNow = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
+    );
 
-const today = colombiaNow.toLocaleDateString("en-CA");
-const drawDateOnly = String(rifa.draw_date || "").slice(0, 10);
-const hour = colombiaNow.getHours();
+    const today = colombiaNow.toLocaleDateString("en-CA");
+    const drawDateOnly = String(rifa.draw_date || "").slice(0, 10);
+    const hour = colombiaNow.getHours();
 
-// 🔴 BLOQUEO DE COMPRA
-if (today > drawDateOnly || (today === drawDateOnly && hour >= 18)) {
-  return res.status(400).send("Esta campaña ya está cerrada.");
-}
-
-    if (error) throw error;
+    if (today > drawDateOnly || (today === drawDateOnly && hour >= 18)) {
+      return res.status(400).send("Esta campaña ya está cerrada.");
+    }
 
     res.json({
       ok: true,
-      rifa: data,
+      rifa
     });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
-
 app.get("/comprar-directo/:rifaId", async (req, res) => {
   try {
     const { rifaId } = req.params;
@@ -4650,86 +4646,84 @@ app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), a
       return res.status(400).send("El resultado debe tener 4 cifras");
     }
 
-   const { error } = await supabase
-  .from("lottery_results")
-  .upsert(
-    {
-      lottery_code,
-      draw_date: dateOnly,
-      result_value,
-      loaded_manually: true
-    },
-    {
-      onConflict: "lottery_code,draw_date"
+    const { error } = await supabase
+      .from("lottery_results")
+      .upsert(
+        {
+          lottery_code,
+          draw_date: dateOnly,
+          result_value,
+          loaded_manually: true
+        },
+        {
+          onConflict: "lottery_code,draw_date"
+        }
+      );
+
+    if (error) throw error;
+
+    const { data: rifas, error: rifasError } = await supabase
+      .from("rifas")
+      .select("*")
+      .eq("status", "approved")
+      .eq("draw_provider", lottery_code)
+      .gte("draw_date", `${dateOnly}T00:00:00`)
+      .lte("draw_date", `${dateOnly}T23:59:59`);
+
+    if (rifasError) throw rifasError;
+
+    for (const rifa of (rifas || [])) {
+      const winningValue = getWinningValueFromResult(rifa.draw_mode, result_value);
+
+      if (!winningValue) continue;
+
+      const { data: winnerTicket, error: winnerError } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("rifa_id", rifa.id)
+        .eq("combination", winningValue)
+        .maybeSingle();
+
+      if (winnerError) throw winnerError;
+
+      const updatePayload = {
+        result_value,
+        winning_number: winningValue,
+        result_loaded_manually: true,
+        status: "finished"
+      };
+
+      if (winnerTicket) {
+        updatePayload.winner_ticket_id = winnerTicket.id;
+        updatePayload.winner_buyer_id = winnerTicket.buyer_id || null;
+      }
+
+      const { error: updateRifaError } = await supabase
+        .from("rifas")
+        .update(updatePayload)
+        .eq("id", rifa.id);
+
+      if (updateRifaError) throw updateRifaError;
+
+      if (winnerTicket) {
+        const { error: resultInsertError } = await supabase
+          .from("raffle_results")
+          .insert({
+            rifa_id: rifa.id,
+            winning_combination: result_value,
+            winner_ticket_id: winnerTicket.id,
+            winner_buyer_id: updatePayload.winner_buyer_id || null
+          });
+
+        if (resultInsertError) throw resultInsertError;
+      }
     }
-  );
 
-if (error) throw error;
-
-// Buscar rifas aprobadas de esa lotería en esa fecha
-const { data: rifas, error: rifasError } = await supabase
-  .from("rifas")
-  .select("*")
-  .eq("status", "approved")
-  .eq("draw_provider", lottery_code)
-  .gte("draw_date", `${dateOnly}T00:00:00`)
-.lte("draw_date", `${dateOnly}T23:59:59`);
-
-if (rifasError) throw rifasError;
-
-for (const rifa of (rifas || [])) {
-  const winningValue = getWinningValueFromResult(rifa.draw_mode, result_value);
-
-  if (!winningValue) continue;
-
-  const { data: winnerTicket, error: winnerError } = await supabase
-    .from("tickets")
-    .select("*")
-    .eq("rifa_id", rifa.id)
-    .eq("combination", winningValue)
-    .maybeSingle();
-
-  if (winnerError) throw winnerError;
-
-  const updatePayload = {
-    result_value,
-    winning_number: winningValue,
-    result_loaded_manually: true,
-    status: "finished"
-  };
-
-  if (winnerTicket) {
-    updatePayload.winner_ticket_id = winnerTicket.id;
-    updatePayload.winner_buyer_id = winnerTicket.buyer_id || null;
-  }
-
-  const { error: updateRifaError } = await supabase
-    .from("rifas")
-    .update(updatePayload)
-    .eq("id", rifa.id);
-
-  if (updateRifaError) throw updateRifaError;
-
- if (winnerTicket) {
-    const { error: resultInsertError } = await supabase
-      .from("raffle_results")
-      .insert({
-        rifa_id: rifa.id,
-        winning_combination: result_value,
-        winner_ticket_id: winnerTicket.id,
-        winner_buyer_id: updatePayload.winner_buyer_id || null
-      });
-
-    if (resultInsertError) throw resultInsertError;
-  }
-}
-
-return res.redirect("/admin?key=" + encodeURIComponent(ADMIN_KEY));
+    return res.redirect("/admin?key=" + encodeURIComponent(ADMIN_KEY));
   } catch (e) {
     return res.status(500).send(e.message);
   }
 });
-
   if (resultInsertError) throw resultInsertError;
 }
 
