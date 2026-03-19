@@ -4641,7 +4641,6 @@ for (const rifa of (rifas || [])) {
     .select("*")
     .eq("rifa_id", rifa.id)
     .eq("combination", winningValue)
-    .eq("payment_status", "approved")
     .maybeSingle();
 
   if (winnerError) throw winnerError;
