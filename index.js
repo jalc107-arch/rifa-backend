@@ -4615,16 +4615,12 @@ app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), a
 if (error) throw error;
 
 // Buscar rifas aprobadas de esa lotería en esa fecha
-const startOfDay = `${draw_date}T00:00:00`;
-const endOfDay = `${draw_date}T23:59:59`;
-
 const { data: rifas, error: rifasError } = await supabase
   .from("rifas")
   .select("*")
   .eq("status", "approved")
   .eq("draw_provider", lottery_code)
-  .gte("draw_date", startOfDay)
-  .lte("draw_date", endOfDay);
+  .like("draw_date", `${draw_date}%`);
 
 if (rifasError) throw rifasError;
 
