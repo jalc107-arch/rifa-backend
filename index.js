@@ -878,6 +878,23 @@ app.get("/rifas/:rifaId", async (req, res) => {
       .eq("id", rifaId)
       .single();
 
+    if (error || !rifa) {
+  return res.status(404).send("Rifa no encontrada");
+}
+
+const colombiaNow = new Date(
+  new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
+);
+
+const today = colombiaNow.toLocaleDateString("en-CA");
+const drawDateOnly = String(rifa.draw_date || "").slice(0, 10);
+const hour = colombiaNow.getHours();
+
+// 🔴 BLOQUEO DE COMPRA
+if (today > drawDateOnly || (today === drawDateOnly && hour >= 18)) {
+  return res.status(400).send("Esta campaña ya está cerrada.");
+}
+
     if (error) throw error;
 
     res.json({
