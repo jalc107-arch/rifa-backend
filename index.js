@@ -4711,17 +4711,16 @@ for (const rifa of (rifas || [])) {
   if (updateRifaError) throw updateRifaError;
 
   if (winnerTicket) {
-    const { error: resultInsertError } = await supabase
-      .from("raffle_results")
-      .upsert({
-        rifa_id: rifa.id,
-        winning_combination: result_value,
-        winner_ticket_id: winnerTicket.id,
-        winner_buyer_id: winnerTicket.buyer_id || null
-      });
+  const { error: resultInsertError } = await supabase
+    .from("raffle_results")
+    .insert({
+      rifa_id: rifa.id,
+      winning_combination: result_value,
+      winner_ticket_id: winnerTicket.id,
+      winner_buyer_id: updatePayload.winner_buyer_id || null
+    });
 
-    if (resultInsertError) throw resultInsertError;
-  }
+  if (resultInsertError) throw resultInsertError;
 }
 
 return res.redirect(`/admin?key=${encodeURIComponent(ADMIN_KEY)}`);
