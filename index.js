@@ -40,145 +40,82 @@ app.get("/probar-pago", async (req, res) => {
 
 app.post("/webhook/mercadopago", async (req, res) => {
   try {
-    const data = req.body;
+    console.log("Webhook recibido:", req.body);
 
-    console.log("WEBHOOK MP:", JSON.stringify(data, null, 2));
-
-    if (data.type !== "payment") {
-      return res.sendStatus(200);
-    }
-
-    const paymentId = data.data?.id;
+    const paymentId = req.body.data?.id;
 
     if (!paymentId) {
-      console.log("Webhook sin paymentId");
       return res.sendStatus(200);
     }
 
+    // consultar pago en MercadoPago
     const response = await fetch(
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
-        }
+          Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+        },
       }
     );
 
     const payment = await response.json();
 
-    console.log("DETALLE PAGO:", JSON.stringify(payment, null, 2));
+    console.log("Estado del pago:", payment.status);
 
-    if (!response.ok) {
-      console.error("Error consultando pago en MP:", payment);
+    if (payment.status !== "approved") {
       return res.sendStatus(200);
     }
 
-    const mpStatus = payment.status;
-    const externalReference = payment.external_reference || null;
+    const externalReference = payment.external_reference;
 
-    console.log("STATUS MP:", mpStatus);
-    console.log("EXTERNAL REFERENCE:", externalReference);
+    const [rifa_id] = externalReference.split("-");
 
-    if (!externalReference) {
-      console.log("No llegó external_reference");
-      return res.sendStatus(200);
-    }
+    // 🔥 GENERAR TICKETS
 
-    const { data: paymentRow, error: paymentRowError } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("external_reference", externalReference)
-      .maybeSingle();
+    const cantidad =
+      payment.additional_info?.items?.[0]?.quantity || 1;
 
-    if (paymentRowError) {
-      console.error("Error buscando payment en Supabase:", paymentRowError);
-      return res.sendStatus(200);
-    }
+    const { data: existentes } = await supabase
+      .from("tickets")
+      .select("combination")
+      .eq("rifa_id", rifa_id);
 
-    if (!paymentRow) {
-      console.log("No se encontró payment en Supabase para esa referencia");
-      return res.sendStatus(200);
-    }
+    const usados = new Set(existentes.map(t => t.combination));
 
-    await supabase
-      .from("payments")
-      .update({
-        provider: "mercadopago",
-        provider_payment_id: String(payment.id),
-        status: mpStatus,
-        status_detail: payment.status_detail || null,
-        raw_response: payment,
-        updated_at: now(),
-      })
-      .eq("id", paymentRow.id);
+    let nuevosTickets = [];
 
-    if (mpStatus === "approved") {
-      await supabase
-        .from("orders")
-        .update({
-          payment_status: "paid",
-          paid_at: now(),
-        })
-        .eq("id", paymentRow.order_id);
+    while (nuevosTickets.length < cantidad) {
+      const numero = Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, "0");
 
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .select(`
-          *,
-          rifas(*)
-        `)
-        .eq("id", paymentRow.order_id)
-        .single();
-
-      if (orderError || !order) {
-        console.error("No se encontró la orden:", orderError);
-        return res.sendStatus(200);
+      if (!usados.has(numero)) {
+        usados.add(numero);
+        nuevosTickets.push(numero);
       }
-
-      const modality = order.rifas?.draw_mode || order.rifas?.modality;
-
-      const { error: assignError } = await supabase.rpc("assign_random_tickets", {
-        p_rifa_id: order.rifa_id,
-        p_order_id: order.id,
-        p_qty: order.qty,
-        p_modality: modality,
-      });
-
-      if (assignError) {
-        console.error("assign_random_tickets error:", assignError.message);
-      }
-
-      const { error: messageError } = await supabase.rpc("log_ticket_message", {
-        p_order_id: order.id,
-        p_channel: "whatsapp",
-      });
-
-      if (messageError) {
-        console.error("log_ticket_message error:", messageError.message);
-      }
-
-      try {
-        await sendPurchaseWhatsApp(order.id);
-      } catch (waError) {
-        console.error("sendPurchaseWhatsApp error:", waError.message);
-      }
-
-      console.log("Pago aprobado y cupones asignados:", order.id);
     }
 
-    if (mpStatus === "rejected" || mpStatus === "cancelled") {
-      await supabase
-        .from("orders")
-        .update({
-          payment_status: "failed",
-        })
-        .eq("id", paymentRow.order_id);
+    const ticketsInsert = nuevosTickets.map(num => ({
+      rifa_id,
+      combination: num,
+      order_id: payment.id
+    }));
+
+    const { error } = await supabase
+      .from("tickets")
+      .insert(ticketsInsert);
+
+    if (error) {
+      console.error("Error guardando tickets:", error);
+    } else {
+      console.log("Tickets creados:", nuevosTickets);
     }
 
-    return res.sendStatus(200);
+    res.sendStatus(200);
+
   } catch (error) {
-    console.error("ERROR WEBHOOK MP:", error);
-    return res.sendStatus(200);
+    console.error("Error webhook:", error);
+    res.sendStatus(500);
   }
 });
 
