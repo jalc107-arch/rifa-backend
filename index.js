@@ -4606,12 +4606,17 @@ app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), a
 
    const { error } = await supabase
   .from("lottery_results")
-  .upsert({
-    lottery_code,
-    draw_date,
-    result_value,
-    loaded_manually: true
-  });
+  .upsert(
+    {
+      lottery_code,
+      draw_date: dateOnly,
+      result_value,
+      loaded_manually: true
+    },
+    {
+      onConflict: "lottery_code,draw_date"
+    }
+  );
 
 if (error) throw error;
 
@@ -4621,7 +4626,7 @@ const { data: rifas, error: rifasError } = await supabase
   .select("*")
   .eq("status", "approved")
   .eq("draw_provider", lottery_code)
-  .like("draw_date", `${draw_date}%`);
+  .like("draw_date", `${dateOnly}%`);
 
 if (rifasError) throw rifasError;
 
