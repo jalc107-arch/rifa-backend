@@ -4627,22 +4627,6 @@ for (const rifa of (rifas || [])) {
 
 return res.redirect(`/admin?key=${encodeURIComponent(ADMIN_KEY)}`);
 
-if (error) throw error;
-
-// Buscar rifas aprobadas de esa lotería
-const startOfDay = `${draw_date}T00:00:00`;
-const endOfDay = `${draw_date}T23:59:59`;
-
-const { data: rifas, error: rifasError } = await supabase
-  .from("rifas")
-  .select("*")
-  .eq("status", "approved")
-  .eq("draw_provider", lottery_code)
-  .gte("draw_date", startOfDay)
-  .lte("draw_date", endOfDay);
-
-if (rifasError) throw rifasError;
-
 for (const rifa of (rifas || [])) {
   const winningValue = getWinningValueFromResult(rifa.draw_mode, result_value);
 
