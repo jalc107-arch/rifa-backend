@@ -4640,7 +4640,7 @@ for (const rifa of (rifas || [])) {
     .from("tickets")
     .select("*")
     .eq("rifa_id", rifa.id)
-    .eq("number", winningValue)
+    .eq("combination", winningValue)
     .eq("payment_status", "approved")
     .maybeSingle();
 
