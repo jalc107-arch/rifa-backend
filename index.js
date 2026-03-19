@@ -4710,7 +4710,7 @@ for (const rifa of (rifas || [])) {
 
   if (updateRifaError) throw updateRifaError;
 
-  if (winnerTicket) {
+ if (winnerTicket) {
   const { error: resultInsertError } = await supabase
     .from("raffle_results")
     .insert({
@@ -4724,10 +4724,9 @@ for (const rifa of (rifas || [])) {
 }
 
 return res.redirect(`/admin?key=${encodeURIComponent(ADMIN_KEY)}`);
-
-  } catch (e) {
-    return res.status(500).send(e.message);
-  }
+} catch (e) {
+  return res.status(500).send(e.message);
+}
 });
 
 app.post("/admin/organizadores/:organizerId/rechazar", async (req, res) => {
