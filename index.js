@@ -4593,6 +4593,7 @@ app.post("/admin/resultados-loterias", express.urlencoded({ extended: true }), a
 
     const lottery_code = String(req.body.lottery_code || "").trim();
     const draw_date = String(req.body.draw_date || "").trim();
+    const dateOnly = draw_date.slice(0, 10);
     const result_value = String(req.body.result_value || "").trim();
 
     if (!lottery_code || !draw_date || !result_value) {
