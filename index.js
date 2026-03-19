@@ -2466,6 +2466,7 @@ app.post("/organizers/:organizerId/crear-rifa", express.urlencoded({ extended: t
     const drawMode = String(req.body.draw_mode || "baloto_3").trim();
     const pricePerTicket = Number(req.body.price_per_ticket || 0);
     const drawDateRaw = String(req.body.draw_date || "").trim();
+    const drawDateOnly = String(req.body.draw_date || "").slice(0, 10);
 
     const { data: organizerCheck, error: organizerCheckError } = await supabase
       .from("organizers")
@@ -2619,7 +2620,7 @@ app.post("/organizers/:organizerId/crear-rifa", express.urlencoded({ extended: t
         max_tickets: maxTickets,
         sold_tickets: 0,
         available_tickets: maxTickets,
-        draw_date: drawDate.toISOString(),
+        draw_date: drawDateOnly,
         status: "pending",
         slug,
         result_value: null,
