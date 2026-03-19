@@ -922,7 +922,18 @@ app.get("/comprar-directo/:rifaId", async (req, res) => {
 if (rifa.status !== "approved") {
   return res.status(400).send("Esta campaña aún no está aprobada para recibir compras.");
 }
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const colombiaNow = new Date(
+  new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
+);
+
+const today = colombiaNow.toISOString().slice(0, 10);
+const drawDateOnly = String(rifa.draw_date || "").slice(0, 10);
+const hour = colombiaNow.getHours();
+
+if (today === drawDateOnly && hour >= 18) {
+  return res.status(400).send("Las compras para esta campaña cerraron a las 6:00 p. m.");
+}
+const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
 const { data: recentOrders, error: recentOrdersError } = await supabase
   .from("orders")
