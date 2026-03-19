@@ -185,48 +185,49 @@ app.post("/webhook/mercadopago", async (req, res) => {
 app.post("/crear-pago", async (req, res) => {
   try {
     const { rifa_id, quantity, precio, buyer_name, buyer_phone, buyer_email } = req.body;
+
     const { data: rifa, error: rifaError } = await supabase
-  .from("rifas")
-  .select("*")
-  .eq("id", rifa_id)
-  .single();
+      .from("rifas")
+      .select("*")
+      .eq("id", rifa_id)
+      .single();
 
-if (rifaError || !rifa) {
-  return res.status(404).send("Campaña no encontrada");
-}
+    if (rifaError || !rifa) {
+      return res.status(404).send("Campaña no encontrada");
+    }
 
-const colombiaNow = new Date(
-  new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
-);
+    const colombiaNow = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
+    );
 
-const today = colombiaNow.toLocaleDateString("en-CA");
-const drawDateOnly = String(rifa.draw_date || "").slice(0, 10);
-const hour = colombiaNow.getHours();
+    const today = colombiaNow.toLocaleDateString("en-CA");
+    const drawDateOnly = String(rifa.draw_date || "").slice(0, 10);
+    const hour = colombiaNow.getHours();
 
-if (today > drawDateOnly || (today === drawDateOnly && hour >= 18)) {
-  return res.status(400).send("Esta campaña ya está cerrada.");
-}
+    if (today > drawDateOnly || (today === drawDateOnly && hour >= 18)) {
+      return res.status(400).send("Esta campaña ya está cerrada.");
+    }
 
-const preference = new Preference(mpClient);
     const preference = new Preference(mpClient);
 
     const response = await preference.create({
-     body: {
-  items: [
-    {
-      title: "Cupón Rifa",
-      quantity: Number(quantity),
-      unit_price: Number(precio),
-      currency_id: "COP"
-    }
-  ],
-  payer: {
-    name: buyer_name,
-    email: buyer_email || "test@test.com"
-  },
-  external_reference: `${rifa_id}|${buyer_phone}|${Date.now()}`
-}
-});
+      body: {
+        items: [
+          {
+            title: "Cupón Rifa",
+            quantity: Number(quantity),
+            unit_price: Number(precio),
+            currency_id: "COP"
+          }
+        ],
+        payer: {
+          name: buyer_name,
+          email: buyer_email || "test@test.com"
+        },
+        external_reference: `${rifa_id}|${buyer_phone}|${Date.now()}`
+      }
+    });
+
     return res.redirect(response.init_point);
   } catch (error) {
     console.error("ERROR MERCADOPAGO:", error.message);
