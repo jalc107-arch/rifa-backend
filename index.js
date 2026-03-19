@@ -1065,6 +1065,7 @@ if (totalBoughtByPhone + qty > 50) {
         <input type="hidden" name="buyer_name" value="${buyerName}">
         <input type="hidden" name="buyer_phone" value="${buyerPhone}">
         <input type="hidden" name="buyer_email" value="${buyerEmail || ""}">
+        <input type="hidden" name="external_reference" value="${externalReference}">
       </form>
       <p>Redirigiendo a Mercado Pago...</p>
     </body>
