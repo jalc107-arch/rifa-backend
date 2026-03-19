@@ -210,23 +210,26 @@ app.post("/crear-pago", async (req, res) => {
 
     const preference = new Preference(mpClient);
 
-    const response = await preference.create({
-      body: {
-        items: [
-          {
-            title: "Cupón Rifa",
-            quantity: Number(quantity),
-            unit_price: Number(precio),
-            currency_id: "COP"
-          }
-        ],
-        payer: {
-          name: buyer_name,
-          email: buyer_email || "test@test.com"
-        },
-        external_reference: `${rifa_id}|${buyer_phone}|${Date.now()}`
+   const externalReference = `${rifa_id}-${buyer_phone}-${Date.now()}`;
+
+const response = await preference.create({
+  body: {
+    items: [
+      {
+        title: "Cupón Rifa",
+        quantity: Number(quantity),
+        unit_price: Number(precio),
+        currency_id: "COP"
       }
-    });
+    ],
+    payer: {
+      name: buyer_name,
+      email: buyer_email || "test@test.com"
+    },
+    external_reference: externalReference,
+    notification_url: "https://rifa-backend-production-4009.up.railway.app/webhook/mercadopago"
+  }
+});
 
     return res.redirect(response.init_point);
   } catch (error) {
