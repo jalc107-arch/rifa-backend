@@ -1808,23 +1808,32 @@ app.get("/organizers/:organizerId/panel", async (req, res) => {
   try {
     const { organizerId } = req.params;
 
-if (!req.session.organizerId) {
-  return res.redirect("/organizers/login");
-}
+    if (!req.session.organizerId) {
+      return res.redirect("/organizers/login");
+    }
 
-if (String(req.session.organizerId) !== String(organizerId)) {
-  return res.redirect("/organizers/login");
-}
-    
+    if (String(req.session.organizerId) !== String(organizerId)) {
+      return res.redirect("/organizers/login");
+    }
+
     const { data: organizer, error: organizerError } = await supabase
       .from("organizers")
       .select("*")
       .eq("id", organizerId)
       .single();
-let verificationBadge = "";
 
-if(organizer.verification_status === "verified"){
-verificationBadge = `
+    if (organizerError || !organizer) {
+      return res.status(404).send("Organizador no encontrado");
+    }
+
+    if (!organizer.profile_id) {
+      return res.status(400).send("El organizador no tiene profile_id asociado");
+    }
+
+    let verificationBadge = "";
+
+    if (organizer.verification_status === "verified") {
+      verificationBadge = `
 <div style="
 background:#e8f7ee;
 color:#1a7f37;
@@ -1836,19 +1845,13 @@ font-weight:600;
 ✔ Organizador verificado
 </div>
 `;
-}
-    if (organizerError || !organizer) {
-  return res.status(404).send("Organizador no encontrado");
-}
+    }
 
-if (!organizer.profile_id) {
-  return res.status(400).send("El organizador no tiene profile_id asociado");
-}
-    
-let verificationBanner = "";
-let requestsBanner = "";
-if (organizer.verification_status === "pending") {
-  verificationBanner = `
+    let verificationBanner = "";
+    let requestsBanner = "";
+
+    if (organizer.verification_status === "pending") {
+      verificationBanner = `
     <div style="
       background:#fff3cd;
       color:#856404;
@@ -1861,8 +1864,8 @@ if (organizer.verification_status === "pending") {
       Tu cuenta está en verificación. Nuestro equipo revisará tus documentos pronto.
     </div>
   `;
-} else if (organizer.verification_status === "rejected") {
-  verificationBanner = `
+    } else if (organizer.verification_status === "rejected") {
+      verificationBanner = `
     <div style="
       background:#f8d7da;
       color:#842029;
@@ -1886,8 +1889,8 @@ if (organizer.verification_status === "pending") {
       </div>
     </div>
   `;
-} else if (organizer.verification_status !== "verified") {
-  verificationBanner = `
+    } else if (organizer.verification_status !== "verified") {
+      verificationBanner = `
     <div style="
       background:#fff3cd;
       color:#856404;
@@ -1911,12 +1914,7 @@ if (organizer.verification_status === "pending") {
       </div>
     </div>
   `;
-}
-    
-    if (organizerError || !organizer) {
-      return res.status(404).send("Organizador no encontrado");
     }
-
   const { data: rifas, error: rifasError } = await supabase
   .from("rifas")
   .select("*")
