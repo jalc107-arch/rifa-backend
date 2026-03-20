@@ -72,6 +72,26 @@ app.post("/webhook/mercadopago", async (req, res) => {
 
     const [rifa_id] = externalReference.split("-");
 
+  // 🔥 VALIDAR SI LA RIFA YA CERRÓ
+const { data: rifa } = await supabase
+  .from("rifas")
+  .select("*")
+  .eq("id", rifa_id)
+  .single();
+
+const colombiaNow = new Date(
+  new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
+);
+
+const today = colombiaNow.toISOString().slice(0, 10);
+const drawDateOnly = String(rifa.draw_date || "").slice(0, 10);
+const hour = colombiaNow.getHours();
+
+if (today > drawDateOnly || (today === drawDateOnly && hour >= 18)) {
+  console.log("⚠️ Rifa cerrada, no generar tickets");
+  return res.sendStatus(200);
+}
+
     // 🔥 GENERAR TICKETS
 
     const cantidad =
