@@ -40,8 +40,9 @@ app.get("/probar-pago", async (req, res) => {
 
 app.post("/webhook/mercadopago", async (req, res) => {
   try {
-    console.log("Webhook recibido:", req.body);
-
+        console.log("Webhook recibido:", req.body);
+    console.log("BODY COMPLETO:", JSON.stringify(req.body, null, 2));
+    
     const paymentId = req.body.data?.id;
 
     if (!paymentId) {
@@ -61,6 +62,7 @@ app.post("/webhook/mercadopago", async (req, res) => {
     const payment = await response.json();
 
     console.log("Estado del pago:", payment.status);
+    console.log("PAGO COMPLETO:", payment);
 
     if (payment.status !== "approved") {
       return res.sendStatus(200);
