@@ -70,8 +70,34 @@ app.post("/webhook/mercadopago", async (req, res) => {
 
     const externalReference = payment.external_reference;
 
-    const [rifa_id] = externalReference.split("-");
+    const [rifa_id, buyer_phone] = externalReference.split("|");
+    
+    const { data: paymentRow, error: paymentRowError } = await supabase
+  .from("payments")
+  .select("id, order_id, external_reference, status")
+  .eq("external_reference", externalReference)
+  .maybeSingle();
 
+if (paymentRowError) {
+  throw paymentRowError;
+}
+
+if (!paymentRow) {
+  console.error("No existe payment en BD para:", externalReference);
+  return res.sendStatus(200);
+}
+// 🔄 Actualizar estado del pago en BD
+await supabase
+  .from("payments")
+  .update({ status: "approved" })
+  .eq("external_reference", externalReference);
+
+// 🔄 Actualizar orden como pagada
+await supabase
+  .from("orders")
+  .update({ payment_status: "paid" })
+  .eq("id", paymentRow.order_id);    
+    
   // 🔥 VALIDAR SI LA RIFA YA CERRÓ
 const { data: rifa } = await supabase
   .from("rifas")
@@ -120,7 +146,7 @@ if (today > drawDateOnly || (today === drawDateOnly && hour >= 18)) {
     const ticketsInsert = nuevosTickets.map(num => ({
       rifa_id,
       combination: num,
-      order_id: payment.id
+      order_id: paymentRow.order_id
     }));
 
     const { error } = await supabase
@@ -143,7 +169,15 @@ if (today > drawDateOnly || (today === drawDateOnly && hour >= 18)) {
 
 app.post("/crear-pago", async (req, res) => {
   try {
-    const { rifa_id, quantity, precio, buyer_name, buyer_phone, buyer_email } = req.body;
+   const {
+  rifa_id,
+  quantity,
+  precio,
+  buyer_name,
+  buyer_phone,
+  buyer_email,
+  external_reference
+} = req.body;
 
     const { data: rifa, error: rifaError } = await supabase
       .from("rifas")
@@ -169,8 +203,7 @@ app.post("/crear-pago", async (req, res) => {
 
     const preference = new Preference(mpClient);
 
-   const externalReference = `${rifa_id}-${buyer_phone}-${Date.now()}`;
-
+const externalReference = external_reference;
 const response = await preference.create({
   body: {
     items: [
