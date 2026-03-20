@@ -83,7 +83,7 @@ const colombiaNow = new Date(
   new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
 );
 
-const today = colombiaNow.toISOString().slice(0, 10);
+const today = colombiaNow.toLocaleDateString("en-CA");
 const drawDateOnly = String(rifa.draw_date || "").slice(0, 10);
 const hour = colombiaNow.getHours();
 
