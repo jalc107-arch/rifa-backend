@@ -988,8 +988,8 @@ const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
 const { data: recentOrders, error: recentOrdersError } = await supabase
   .from("orders")
-  .select("id, created_at")
-  .eq("buyer_phone", buyerPhone)
+  .select("id, created_at, buyer_id")
+  .eq("buyer_id", buyer.id)
   .gte("created_at", tenMinutesAgo);
 
 if (recentOrdersError) throw recentOrdersError;
@@ -1001,7 +1001,7 @@ if ((recentOrders || []).length >= 3) {
   .from("orders")
   .select("qty")
   .eq("rifa_id", rifaId)
-  .eq("buyer_phone", buyerPhone);
+  .eq("buyer_id", buyer.id);
 
 if (buyerOrdersError) throw buyerOrdersError;
 
