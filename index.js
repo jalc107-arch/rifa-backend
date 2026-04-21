@@ -43,11 +43,26 @@ app.post("/webhook/mercadopago", async (req, res) => {
         console.log("Webhook recibido:", req.body);
     console.log("BODY COMPLETO:", JSON.stringify(req.body, null, 2));
     
-    const paymentId = req.body.data?.id;
+let paymentId = req.body.data?.id;
 
+if (!paymentId && req.body.topic === "merchant_order" && req.body.resource) {
+  const moResponse = await fetch(req.body.resource, {
+    headers: {
+      Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+    },
+  });
+
+  const merchantOrder = await moResponse.json();
+
+  console.log("MERCHANT ORDER COMPLETA:", merchantOrder);
+
+  paymentId = merchantOrder.payments?.[0]?.id;
+}
+    
     if (!paymentId) {
-      return res.sendStatus(200);
-    }
+  console.log("No llegó paymentId");
+  return res.sendStatus(200);
+}
 
     // consultar pago en MercadoPago
     const response = await fetch(
@@ -69,6 +84,11 @@ app.post("/webhook/mercadopago", async (req, res) => {
     }
 
     const externalReference = payment.external_reference;
+    
+    if (!externalReference) {
+  console.log("Payment sin external_reference");
+  return res.sendStatus(200);
+}
 
     const [rifa_id, buyer_phone] = externalReference.split("|");
     
@@ -3019,10 +3039,7 @@ ${rifa.organizers && rifa.organizers.full_name ? rifa.organizers.full_name : "Or
           <div class="card">
             <h2 class="section-title">Adquiere tus cupones de participación</h2>
 
-<form action="/crear-pago" method="POST">
-
-<input type="hidden" name="rifa_id" value="${rifa.id}">
-<input type="hidden" name="precio" value="${rifa.price_per_ticket}">
+<form action="/comprar-directo/${rifa.id}" method="GET">
 
 <label>Nombre completo</label>
 <input type="text" name="buyer_name" required>
@@ -3034,7 +3051,7 @@ ${rifa.organizers && rifa.organizers.full_name ? rifa.organizers.full_name : "Or
 <input type="email" name="buyer_email">
 
 <label>Cantidad de cupones</label>
-<input type="number" name="quantity" value="1" min="1" max="${disponibles || 1}" required>
+<input type="number" name="qty" value="1" min="1" max="${disponibles || 1}" required>
 
 <button type="submit" class="buy-btn">
 Participar en la campaña
