@@ -986,30 +986,7 @@ if (today === drawDateOnly && hour >= 18) {
 }
 const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
-const { data: recentOrders, error: recentOrdersError } = await supabase
-  .from("orders")
-  .select("id, created_at, buyer_id")
-  .eq("buyer_id", buyer.id)
-  .gte("created_at", tenMinutesAgo);
 
-if (recentOrdersError) throw recentOrdersError;
-
-if ((recentOrders || []).length >= 3) {
-  return res.status(429).send("Has realizado demasiados intentos de compra en pocos minutos. Intenta nuevamente más tarde.");
-}
-    const { data: buyerOrders, error: buyerOrdersError } = await supabase
-  .from("orders")
-  .select("qty")
-  .eq("rifa_id", rifaId)
-  .eq("buyer_id", buyer.id);
-
-if (buyerOrdersError) throw buyerOrdersError;
-
-const totalBoughtByPhone = (buyerOrders || []).reduce((acc, o) => acc + Number(o.qty || 0), 0);
-
-if (totalBoughtByPhone + qty > 50) {
-  return res.status(400).send("No puedes superar 50 cupones en esta campaña con el mismo número.");
-}
     const total = qty * Number(rifa.price_per_ticket);
     const commission = total * 0.03;
 
@@ -1039,6 +1016,32 @@ if (totalBoughtByPhone + qty > 50) {
       if (newBuyerError) throw newBuyerError;
       buyer = newBuyer;
     }
+
+    const { data: recentOrders, error: recentOrdersError } = await supabase
+  .from("orders")
+  .select("id, created_at, buyer_id")
+  .eq("buyer_id", buyer.id)
+  .gte("created_at", tenMinutesAgo);
+
+    if (recentOrdersError) throw recentOrdersError;
+
+if ((recentOrders || []).length >= 3) {
+  return res.status(429).send("Has realizado demasiados intentos de compra en pocos minutos. Intenta nuevamente más tarde.");
+}
+    
+    const { data: buyerOrders, error: buyerOrdersError } = await supabase
+  .from("orders")
+  .select("qty")
+  .eq("rifa_id", rifaId)
+  .eq("buyer_id", buyer.id);
+
+    if (buyerOrdersError) throw buyerOrdersError;
+
+const totalBoughtByPhone = (buyerOrders || []).reduce((acc, o) => acc + Number(o.qty || 0), 0);
+
+if (totalBoughtByPhone + qty > 50) {
+  return res.status(400).send("No puedes superar 50 cupones en esta campaña con el mismo número.");
+}
 
    const externalReference = `${rifaId}|${buyerPhone}|${Date.now()}`;
   const { data: order, error: orderError } = await supabase
