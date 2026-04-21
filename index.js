@@ -64,6 +64,11 @@ if (!paymentId && req.body.topic === "merchant_order" && req.body.resource) {
   return res.sendStatus(200);
 }
 
+    if (!paymentId && merchantOrder?.order_status === "payment_required") {
+  console.log("Merchant order sin pago creado. Estado:", merchantOrder.order_status);
+  return res.sendStatus(200);
+}
+
     // consultar pago en MercadoPago
     const response = await fetch(
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
